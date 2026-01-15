@@ -206,6 +206,21 @@ public class AzureSpeechRecognitionService : ISpeechRecognitionService
 
         if (_recognizer != null)
         {
+            // Stop recognition if it's running
+            if (CurrentState == RecognitionState.Listening)
+            {
+                try
+                {
+                    Log("Dispose: Stopping active recognition...");
+                    _recognizer.StopContinuousRecognitionAsync().GetAwaiter().GetResult();
+                    Log("Dispose: Recognition stopped");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Dispose: Error stopping recognition: {ex.Message}");
+                }
+            }
+
             _recognizer.Recognizing -= OnRecognizing;
             _recognizer.Recognized -= OnRecognized;
             _recognizer.Canceled -= OnCanceled;

@@ -152,6 +152,17 @@ public class SpeechServiceManager : ISpeechRecognitionService
     public void Dispose()
     {
         _settingsService.SettingsChanged -= OnSettingsChanged;
+
+        // Stop active recognition first
+        if (_activeService.CurrentState == RecognitionState.Listening)
+        {
+            try
+            {
+                _activeService.StopRecognitionAsync().GetAwaiter().GetResult();
+            }
+            catch { /* Ignore errors during shutdown */ }
+        }
+
         _offlineService.Dispose();
         _azureService.Dispose();
         _whisperService.Dispose();

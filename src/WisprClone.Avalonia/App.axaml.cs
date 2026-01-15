@@ -361,10 +361,8 @@ public partial class App : Application
         var exitItem = new NativeMenuItem("Exit");
         exitItem.Click += (_, _) =>
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
+            Log("Exit clicked - forcing cleanup...");
+            ForceCleanupAndExit();
         };
         _trayMenu.Items.Add(exitItem);
 
@@ -452,6 +450,49 @@ public partial class App : Application
     {
         var uri = new Uri($"avares://WisprClone/Resources/Icons/{iconName}");
         return AssetLoader.Open(uri);
+    }
+
+    private void ForceCleanupAndExit()
+    {
+        Log("ForceCleanupAndExit: Starting cleanup on background thread...");
+
+        // Run cleanup on background thread with timeout
+        var cleanupTask = Task.Run(() =>
+        {
+            try
+            {
+                Log("ForceCleanupAndExit: Disposing update service...");
+                _updateService?.Dispose();
+
+                Log("ForceCleanupAndExit: Disposing main view model...");
+                _mainViewModel?.Dispose();
+
+                Log("ForceCleanupAndExit: Cleanup complete");
+            }
+            catch (Exception ex)
+            {
+                Log($"ForceCleanupAndExit: Error during cleanup: {ex.Message}");
+            }
+        });
+
+        // Wait max 3 seconds for cleanup, then force exit
+        if (!cleanupTask.Wait(TimeSpan.FromSeconds(3)))
+        {
+            Log("ForceCleanupAndExit: Cleanup timed out, forcing exit...");
+        }
+
+        // Hide tray icon (must be on UI thread but don't wait)
+        try
+        {
+            if (_trayIcon != null)
+            {
+                _trayIcon.IsVisible = false;
+            }
+        }
+        catch { }
+
+        Log("ForceCleanupAndExit: Exiting process...");
+        Environment.Exit(0);
     }
 
     private static void Log(string message)

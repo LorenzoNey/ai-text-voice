@@ -13,7 +13,8 @@
         Topmost="True"
         ShowInTaskbar="False"
         CanResize="False"
-        Width="420" Height="160">
+        Width="420" MinHeight="100" Height="100"
+        SizeToContent="Height">
 
     <Window.Styles>
         <!-- Pulse animation for listening state -->
@@ -155,18 +156,18 @@
             </Border>
 
             <!-- Transcription text area -->
-            <ScrollViewer x:Name="TranscriptionScrollViewer"
-                          Grid.Row="1"
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          Padding="14,8">
-                <TextBlock x:Name="TranscriptionText"
-                           Text="{Binding TranscriptionText}"
-                           Foreground="White"
-                           FontSize="15"
-                           TextWrapping="Wrap"
-                           LineHeight="22"/>
-            </ScrollViewer>
+            <TextBox x:Name="TranscriptionTextBox"
+                     Grid.Row="1"
+                     Text="{Binding TranscriptionText}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Foreground="White"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     FontSize="13"
+                     Padding="14,6,14,8"
+                     CaretBrush="Transparent"/>
 
             <!-- Footer with provider and language selectors -->
             <Border Grid.Row="2"

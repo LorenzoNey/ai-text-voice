@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using WisprClone.ViewModels;
 
 namespace WisprClone.Views;
@@ -13,6 +14,8 @@ namespace WisprClone.Views;
 public partial class OverlayWindow : Window
 {
     private OverlayViewModel? _viewModel;
+    private const double MinWindowHeight = 100;
+    private const double MaxWindowHeight = 600;
 
     public OverlayWindow()
     {
@@ -33,6 +36,15 @@ public partial class OverlayWindow : Window
 
         // Track position changes
         PositionChanged += OnWindowPositionChanged;
+
+        // Listen to TextBox size changes for auto-resize
+        TranscriptionTextBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property.Name == "Bounds")
+            {
+                AdjustWindowHeight();
+            }
+        };
     }
 
     private void OnWindowPositionChanged(object? sender, PixelPointEventArgs e)
@@ -61,6 +73,8 @@ public partial class OverlayWindow : Window
                     Position = new PixelPoint(Position.X, (int)vm.WindowTop);
                 else if (args.PropertyName == nameof(OverlayViewModel.TranscriptionText))
                     ScrollToBottom();
+                else if (args.PropertyName == nameof(OverlayViewModel.IsListening) && vm.IsListening)
+                    ResetWindowHeight();
             };
 
             // Set initial position
@@ -107,7 +121,37 @@ public partial class OverlayWindow : Window
 
     private void ScrollToBottom()
     {
-        // Scroll to the bottom of the transcription text
-        TranscriptionScrollViewer.ScrollToEnd();
+        // TextBox auto-scrolls when caret is at end
+        Dispatcher.UIThread.Post(() =>
+        {
+            var text = TranscriptionTextBox.Text;
+            if (text != null)
+            {
+                TranscriptionTextBox.CaretIndex = text.Length;
+            }
+        });
+    }
+
+    private void ResetWindowHeight()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            Height = MinWindowHeight;
+        });
+    }
+
+    private void AdjustWindowHeight()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            // Calculate desired height based on content
+            var desiredHeight = MainBorder.DesiredSize.Height + 20; // 20 for window margin
+            desiredHeight = Math.Clamp(desiredHeight, MinWindowHeight, MaxWindowHeight);
+
+            if (Math.Abs(Height - desiredHeight) > 5) // Only resize if difference is significant
+            {
+                Height = desiredHeight;
+            }
+        });
     }
 }
