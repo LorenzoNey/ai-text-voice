@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using WisprClone.Services.Interfaces;
@@ -14,10 +15,22 @@ public class AvaloniaClipboardService : IClipboardService
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            return desktop.MainWindow?.Clipboard;
+            // Try MainWindow first
+            if (desktop.MainWindow?.Clipboard != null)
+            {
+                return desktop.MainWindow.Clipboard;
+            }
+
+            // Fallback: try to get clipboard from any open window
+            foreach (var window in desktop.Windows)
+            {
+                if (window.Clipboard != null)
+                {
+                    return window.Clipboard;
+                }
+            }
         }
 
-        // Fallback: try to get from top-level window
         return null;
     }
 
