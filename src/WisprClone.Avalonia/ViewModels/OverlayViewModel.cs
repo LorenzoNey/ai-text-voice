@@ -144,7 +144,8 @@ public partial class OverlayViewModel : ViewModelBase
         var providerOptions = new ObservableCollection<ProviderOption>
         {
             new() { Provider = SpeechProvider.Azure, DisplayName = "Azure" },
-            new() { Provider = SpeechProvider.OpenAI, DisplayName = "OpenAI" }
+            new() { Provider = SpeechProvider.OpenAI, DisplayName = "Whisper" },
+            new() { Provider = SpeechProvider.OpenAIRealtime, DisplayName = "Realtime" }
         };
 
         // Add Offline option only on Windows

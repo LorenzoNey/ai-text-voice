@@ -73,12 +73,16 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 
 ### Speech Provider Availability
 
-| Provider | Windows | macOS | Linux |
-|----------|---------|-------|-------|
-| Offline (System.Speech) | Yes | No | No |
-| Azure Speech Service | Yes | Yes | Yes |
-| OpenAI Whisper | Yes | Yes | Yes |
-| Hybrid (Offline + Azure) | Yes | No | No |
+| Provider | Windows | macOS | Linux | Streaming |
+|----------|---------|-------|-------|-----------|
+| Offline (System.Speech) | Yes | No | No | Yes |
+| Azure Speech Service | Yes | Yes | Yes | Yes |
+| OpenAI Whisper (Batch) | Yes | Yes | Yes | No* |
+| OpenAI Realtime | Yes | No** | No** | Yes |
+| Hybrid (Offline + Azure) | Yes | No | No | Yes |
+
+\* Whisper re-transcribes entire audio every 2 seconds (pseudo-streaming)
+\** OpenAI Realtime requires NAudio for audio capture (Windows only currently)
 
 ## Usage
 
@@ -104,8 +108,9 @@ Actions:
 
 ### Speech Provider
 - **Offline (Windows only)**: Uses Windows built-in speech recognition - no internet required
-- **Azure Speech Service**: Cloud-based recognition with high accuracy
-- **OpenAI Whisper**: Uses OpenAI's Whisper model for transcription
+- **Azure Speech Service**: Cloud-based recognition with real-time streaming
+- **OpenAI Whisper (Batch)**: Re-transcribes entire audio every 2 seconds
+- **OpenAI Realtime**: True streaming transcription via WebSocket (lowest latency)
 
 ### Cloud Service Setup
 
@@ -115,10 +120,22 @@ Actions:
 3. Open Settings and select "Azure" as the speech provider
 4. Enter your subscription key and region
 
-#### OpenAI Whisper
+#### OpenAI (Whisper & Realtime)
+
+Both OpenAI providers use the same API key.
+
 1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Open Settings and select "OpenAI Whisper" as the speech provider
-3. Enter your OpenAI API key
+2. Open Settings and enter your OpenAI API key
+3. Select either:
+   - **OpenAI Whisper (Batch)**: Better for longer recordings, re-transcribes every 2s
+   - **OpenAI Realtime (Streaming)**: True real-time streaming, lower latency
+
+**Note on OpenAI Realtime API:**
+- Uses the `gpt-4o-realtime-preview` model with Whisper for transcription
+- Requires WebSocket connection to OpenAI servers
+- Audio is streamed at 24kHz PCM16 mono format
+- Provides instant transcription as you speak
+- Currently Windows-only (requires NAudio for audio capture)
 
 ## Building from Source
 

@@ -108,6 +108,7 @@ public partial class App : Application
         // Speech services
         services.AddSingleton<AzureSpeechRecognitionService>();
         services.AddSingleton<OpenAIWhisperSpeechRecognitionService>();
+        services.AddSingleton<OpenAIRealtimeSpeechRecognitionService>();
 
 #if WINDOWS
         // Windows: All providers available including offline
@@ -129,6 +130,7 @@ public partial class App : Application
                 sp.GetRequiredService<OfflineSpeechRecognitionService>(),
                 sp.GetRequiredService<AzureSpeechRecognitionService>(),
                 sp.GetRequiredService<OpenAIWhisperSpeechRecognitionService>(),
+                sp.GetRequiredService<OpenAIRealtimeSpeechRecognitionService>(),
                 sp.GetRequiredService<HybridSpeechRecognitionService>(),
                 settings);
         });

@@ -126,7 +126,8 @@
                 <ComboBox x:Name="SpeechProviderComboBox" Classes="settings">
                     <ComboBoxItem Content="Offline (Windows Speech)" Tag="Offline" IsSelected="True"/>
                     <ComboBoxItem Content="Azure Speech Service" Tag="Azure"/>
-                    <ComboBoxItem Content="OpenAI Whisper" Tag="OpenAI"/>
+                    <ComboBoxItem Content="OpenAI Whisper (Batch)" Tag="OpenAI"/>
+                    <ComboBoxItem Content="OpenAI Realtime (Streaming)" Tag="OpenAIRealtime"/>
                 </ComboBox>
 
                 <TextBlock x:Name="ProviderInfoText"
@@ -147,14 +148,16 @@
                           Classes="settings"
                           Margin="0,12,0,0"/>
 
-                <!-- OpenAI Whisper Settings -->
-                <TextBlock Text="OpenAI Whisper" Classes="sectionHeader"/>
+                <!-- OpenAI Settings -->
+                <TextBlock Text="OpenAI (Whisper &amp; Realtime)" Classes="sectionHeader"/>
 
                 <TextBlock Text="API Key" Classes="label"/>
                 <TextBox x:Name="OpenAIKeyTextBox" Classes="settings" PasswordChar="*"/>
 
-                <TextBlock Text="Note: Whisper transcribes after you stop speaking (no real-time results)."
+                <TextBlock Text="Used for both Whisper (batch) and Realtime (streaming) providers."
                            Classes="info"/>
+                <TextBlock Text="Whisper: Re-transcribes entire audio every 2s. Realtime: True streaming via WebSocket."
+                           Classes="info" Margin="0,4,0,0"/>
 
                 <!-- Language Settings -->
                 <TextBlock Text="Language" Classes="sectionHeader"/>

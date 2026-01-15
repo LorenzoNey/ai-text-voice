@@ -13,6 +13,7 @@ public class SpeechServiceManager : ISpeechRecognitionService
     private readonly OfflineSpeechRecognitionService _offlineService;
     private readonly AzureSpeechRecognitionService _azureService;
     private readonly OpenAIWhisperSpeechRecognitionService _whisperService;
+    private readonly OpenAIRealtimeSpeechRecognitionService _realtimeService;
     private readonly HybridSpeechRecognitionService _hybridService;
     private readonly ISettingsService _settingsService;
 
@@ -35,12 +36,14 @@ public class SpeechServiceManager : ISpeechRecognitionService
         OfflineSpeechRecognitionService offlineService,
         AzureSpeechRecognitionService azureService,
         OpenAIWhisperSpeechRecognitionService whisperService,
+        OpenAIRealtimeSpeechRecognitionService realtimeService,
         HybridSpeechRecognitionService hybridService,
         ISettingsService settingsService)
     {
         _offlineService = offlineService;
         _azureService = azureService;
         _whisperService = whisperService;
+        _realtimeService = realtimeService;
         _hybridService = hybridService;
         _settingsService = settingsService;
 
@@ -49,6 +52,7 @@ public class SpeechServiceManager : ISpeechRecognitionService
         WireEvents(_offlineService);
         WireEvents(_azureService);
         WireEvents(_whisperService);
+        WireEvents(_realtimeService);
         WireEvents(_hybridService);
 
         _settingsService.SettingsChanged += OnSettingsChanged;
@@ -68,6 +72,7 @@ public class SpeechServiceManager : ISpeechRecognitionService
         {
             SpeechProvider.Azure => _azureService,
             SpeechProvider.OpenAI => _whisperService,
+            SpeechProvider.OpenAIRealtime => _realtimeService,
             _ => _hybridService // Offline uses Hybrid for fallback support
         };
     }
@@ -93,6 +98,9 @@ public class SpeechServiceManager : ISpeechRecognitionService
                 break;
             case SpeechProvider.OpenAI:
                 _whisperService.Configure(settings.OpenAIApiKey ?? string.Empty);
+                break;
+            case SpeechProvider.OpenAIRealtime:
+                _realtimeService.Configure(settings.OpenAIApiKey ?? string.Empty);
                 break;
         }
 
@@ -129,6 +137,7 @@ public class SpeechServiceManager : ISpeechRecognitionService
 
         _azureService.Configure(settings.AzureSubscriptionKey, settings.AzureRegion);
         _whisperService.Configure(settings.OpenAIApiKey ?? string.Empty);
+        _realtimeService.Configure(settings.OpenAIApiKey ?? string.Empty);
 
         await _activeService.InitializeAsync(language);
         _isInitialized = true;
@@ -146,6 +155,7 @@ public class SpeechServiceManager : ISpeechRecognitionService
         _offlineService.Dispose();
         _azureService.Dispose();
         _whisperService.Dispose();
+        _realtimeService.Dispose();
     }
 }
 #endif

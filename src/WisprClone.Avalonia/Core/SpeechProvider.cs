@@ -17,7 +17,13 @@ public enum SpeechProvider
     Azure,
 
     /// <summary>
-    /// Cloud recognition using OpenAI Whisper API.
+    /// Cloud recognition using OpenAI Whisper API (batch, re-transcribes periodically).
     /// </summary>
-    OpenAI
+    OpenAI,
+
+    /// <summary>
+    /// Cloud recognition using OpenAI Realtime API (true streaming via WebSocket).
+    /// Provides real-time transcription with lower latency than batch Whisper.
+    /// </summary>
+    OpenAIRealtime
 }
