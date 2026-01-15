@@ -1,5 +1,6 @@
 using Avalonia;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace WisprClone;
@@ -37,17 +38,26 @@ class Program
 
     private static void ShowAlreadyRunningMessage()
     {
-#if WINDOWS
-        // Use Windows MessageBox
-        _ = NativeMethods.MessageBox(
-            IntPtr.Zero,
-            "WisprClone is already running.\n\nCheck the system tray for the existing instance.",
-            "WisprClone",
-            0x00000040 | 0x00000000); // MB_ICONINFORMATION | MB_OK
-#else
-        // For other platforms, write to console
-        Console.WriteLine("WisprClone is already running. Check the system tray for the existing instance.");
-#endif
+        const string message = "WisprClone is already running.\n\nCheck the system tray for the existing instance.";
+        const string title = "WisprClone";
+
+        if (OperatingSystem.IsWindows())
+        {
+            // Use Windows MessageBox via P/Invoke
+            try
+            {
+                _ = MessageBox(IntPtr.Zero, message, title, 0x00000040); // MB_ICONINFORMATION
+            }
+            catch
+            {
+                Console.WriteLine(message);
+            }
+        }
+        else
+        {
+            // For other platforms, write to console
+            Console.WriteLine(message);
+        }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -56,13 +66,8 @@ class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
-}
 
-#if WINDOWS
-// Native Windows methods for MessageBox
-internal static partial class NativeMethods
-{
-    [System.Runtime.InteropServices.LibraryImport("user32.dll", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16)]
-    public static partial int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+    // Windows MessageBox P/Invoke - only called on Windows at runtime
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
 }
-#endif

@@ -51,20 +51,15 @@ public partial class OverlayWindow : Window
         {
             _viewModel = vm;
 
-            // Bind window position
+            // Bind window position changes only
+            // Note: Show/Hide is handled by App.axaml.cs via ShowOverlayRequested/HideOverlayRequested events
+            // to avoid double Show() calls that can cause crashes
             vm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(OverlayViewModel.WindowLeft))
                     Position = new PixelPoint((int)vm.WindowLeft, Position.Y);
                 else if (args.PropertyName == nameof(OverlayViewModel.WindowTop))
                     Position = new PixelPoint(Position.X, (int)vm.WindowTop);
-                else if (args.PropertyName == nameof(OverlayViewModel.IsVisible))
-                {
-                    if (vm.IsVisible)
-                        Show();
-                    else
-                        Hide();
-                }
             };
 
             // Set initial position
