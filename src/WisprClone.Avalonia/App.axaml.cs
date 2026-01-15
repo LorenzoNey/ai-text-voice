@@ -66,9 +66,9 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log($"Failed to initialize: {ex.Message}");
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
-                desktop.Shutdown(1);
+                desktopLifetime.Shutdown(1);
             }
             return;
         }
