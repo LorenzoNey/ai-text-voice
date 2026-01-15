@@ -88,15 +88,16 @@
             BorderBrush="#40FFFFFF"
             BorderThickness="1"
             Margin="10"
-            PointerPressed="Border_PointerPressed"
             BoxShadow="0 0 15 0 #80000000">
 
         <Grid RowDefinitions="Auto,*,Auto">
-            <!-- Header with status indicator -->
+            <!-- Header with status indicator (drag handle) -->
             <Border Grid.Row="0"
                     Padding="12,10"
                     Background="#20FFFFFF"
-                    CornerRadius="12,12,0,0">
+                    CornerRadius="12,12,0,0"
+                    PointerPressed="Border_PointerPressed"
+                    Cursor="SizeAll">
                 <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                     <!-- Status indicator (animated pulse when listening) -->
                     <Ellipse Grid.Column="0"
