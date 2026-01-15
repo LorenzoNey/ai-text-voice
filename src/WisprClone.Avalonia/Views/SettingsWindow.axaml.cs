@@ -29,6 +29,13 @@ public partial class SettingsWindow : Window
     {
         var settings = _settingsService.Current;
 
+        // About - set version from assembly
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        if (version != null)
+        {
+            VersionText.Text = $"v{version.Major}.{version.Minor}.{version.Build}";
+        }
+
         // Speech provider
         SelectComboBoxItemByTag(SpeechProviderComboBox, settings.SpeechProvider.ToString());
 

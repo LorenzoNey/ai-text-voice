@@ -146,6 +146,8 @@
                         <Button Content="x"
                                 Classes="closeButton"
                                 Click="CloseButton_Click"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
                                 ToolTip.Tip="Hide overlay (Ctrl+Ctrl to show)"/>
                     </StackPanel>
                 </Grid>
