@@ -23,12 +23,9 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 
 | Platform | Architecture | Download |
 |----------|--------------|----------|
-| Windows | x64 | [WisprClone-Windows-x64.zip](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| Windows | ARM64 | [WisprClone-Windows-arm64.zip](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| macOS | Intel | [WisprClone-macOS-x64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| macOS | Apple Silicon | [WisprClone-macOS-arm64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| Linux | x64 | [WisprClone-Linux-x64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| Linux | ARM64 | [WisprClone-Linux-arm64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Windows | x64 | [WisprClone-Setup.exe](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| macOS | Apple Silicon | [WisprClone-macOS-arm64.dmg](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Linux | x64 | [WisprClone-Linux-x64.AppImage](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
 
 ## Installation
 
