@@ -52,14 +52,15 @@ public partial class OverlayWindow : Window
         {
             _viewModel = vm;
 
-            // Bind window position changes only
-            // Note: Show/Hide is handled by App.axaml.cs via ShowOverlayRequested/HideOverlayRequested events
+            // Bind window position changes and auto-scroll on text change
             vm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(OverlayViewModel.WindowLeft))
                     Position = new PixelPoint((int)vm.WindowLeft, Position.Y);
                 else if (args.PropertyName == nameof(OverlayViewModel.WindowTop))
                     Position = new PixelPoint(Position.X, (int)vm.WindowTop);
+                else if (args.PropertyName == nameof(OverlayViewModel.TranscriptionText))
+                    ScrollToBottom();
             };
 
             // Set initial position
@@ -102,5 +103,11 @@ public partial class OverlayWindow : Window
     {
         if (_viewModel != null)
             _viewModel.IsDropdownOpen = false;
+    }
+
+    private void ScrollToBottom()
+    {
+        // Scroll to the bottom of the transcription text
+        TranscriptionScrollViewer.ScrollToEnd();
     }
 }

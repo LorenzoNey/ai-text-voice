@@ -145,12 +145,11 @@ public partial class OverlayViewModel : ViewModelBase
             new() { Code = "ja-JP", DisplayName = "Japanese" }
         };
 
-        // Initialize provider options
+        // Initialize provider options (OpenAI Realtime temporarily disabled due to cost/quality)
         var providerOptions = new ObservableCollection<ProviderOption>
         {
             new() { Provider = SpeechProvider.Azure, DisplayName = "Azure" },
-            new() { Provider = SpeechProvider.OpenAI, DisplayName = "Whisper" },
-            new() { Provider = SpeechProvider.OpenAIRealtime, DisplayName = "Realtime" }
+            new() { Provider = SpeechProvider.OpenAI, DisplayName = "Whisper" }
         };
 
         // Add Offline option only on Windows
