@@ -20,6 +20,7 @@ public partial class App : Application
     private IServiceProvider _serviceProvider = null!;
     private MainViewModel _mainViewModel = null!;
     private TrayIcon? _trayIcon;
+    private TrayIcons? _trayIcons; // Keep reference to prevent GC
     private OverlayWindow? _overlayWindow;
     private SettingsWindow? _settingsWindow;
 
@@ -159,12 +160,25 @@ public partial class App : Application
         {
             Icon = new WindowIcon(GetIconStream("tray_idle.ico")),
             ToolTipText = "WisprClone - Ready (Ctrl+Ctrl to start)",
-            Menu = CreateTrayMenu(trayViewModel)
+            Menu = CreateTrayMenu(trayViewModel),
+            IsVisible = true
         };
 
-        _trayIcon.Clicked += (_, _) => trayViewModel.ToggleOverlayCommand.Execute(null);
+        _trayIcon.Clicked += (_, _) =>
+        {
+            try
+            {
+                trayViewModel.ToggleOverlayCommand.Execute(null);
+            }
+            catch (Exception ex)
+            {
+                Log($"Tray click error: {ex.Message}");
+            }
+        };
 
-        TrayIcon.SetIcons(this, new TrayIcons { _trayIcon });
+        // Store reference to prevent garbage collection
+        _trayIcons = new TrayIcons { _trayIcon };
+        TrayIcon.SetIcons(this, _trayIcons);
     }
 
     private NativeMenu CreateTrayMenu(SystemTrayViewModel viewModel)
