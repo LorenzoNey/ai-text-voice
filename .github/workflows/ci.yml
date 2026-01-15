@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/*.md'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/*.md'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies (Avalonia)
+        run: dotnet restore src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
+
+      - name: Build Avalonia project
+        run: dotnet build src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release --no-restore
+
+      # Only build WPF project on Windows
+      - name: Restore dependencies (WPF - Windows only)
+        if: runner.os == 'Windows'
+        run: dotnet restore src/WisprClone/WisprClone.csproj
+
+      - name: Build WPF project (Windows only)
+        if: runner.os == 'Windows'
+        run: dotnet build src/WisprClone/WisprClone.csproj -c Release --no-restore

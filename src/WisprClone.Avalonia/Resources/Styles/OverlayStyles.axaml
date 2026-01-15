@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Colors -->
+    <Color x:Key="BackgroundColor">#E6202020</Color>
+    <Color x:Key="BorderColor">#40FFFFFF</Color>
+    <Color x:Key="TextPrimaryColor">#FFFFFFFF</Color>
+    <Color x:Key="TextSecondaryColor">#CCFFFFFF</Color>
+    <Color x:Key="TextMutedColor">#60FFFFFF</Color>
+
+    <Color x:Key="StatusIdleColor">#FF808080</Color>
+    <Color x:Key="StatusListeningColor">#FF32CD32</Color>
+    <Color x:Key="StatusProcessingColor">#FFFFA500</Color>
+    <Color x:Key="StatusErrorColor">#FFFF4444</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}"/>
+
+    <!-- Accent colors for settings -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF3391FF"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF4DA3FF"/>
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#FF2878D4"/>
+
+    <!-- Dark theme backgrounds -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF1E1E1E"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FF2D2D2D"/>
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#FF404040"/>
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#FF505050"/>
+
+</ResourceDictionary>

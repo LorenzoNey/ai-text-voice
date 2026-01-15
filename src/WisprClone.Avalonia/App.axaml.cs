@@ -2,16 +2,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using WisprClone.Infrastructure;
 using WisprClone.Infrastructure.Keyboard;
 using WisprClone.Services;
 using WisprClone.Services.Interfaces;
 using WisprClone.Services.Speech;
 using WisprClone.ViewModels;
+using WisprClone.Views;
 
 namespace WisprClone;
 
@@ -20,6 +20,8 @@ public partial class App : Application
     private IServiceProvider _serviceProvider = null!;
     private MainViewModel _mainViewModel = null!;
     private TrayIcon? _trayIcon;
+    private OverlayWindow? _overlayWindow;
+    private SettingsWindow? _settingsWindow;
 
     public override void Initialize()
     {
@@ -36,6 +38,11 @@ public partial class App : Application
         // Initialize main view model
         _mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
 
+        // Subscribe to events
+        _mainViewModel.ShowOverlayRequested += OnShowOverlayRequested;
+        _mainViewModel.HideOverlayRequested += OnHideOverlayRequested;
+        _mainViewModel.OpenSettingsRequested += OnOpenSettingsRequested;
+
         try
         {
             await _mainViewModel.InitializeAsync();
@@ -43,7 +50,6 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log($"Failed to initialize: {ex.Message}");
-            // TODO: Show error dialog
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.Shutdown(1);
@@ -51,10 +57,40 @@ public partial class App : Application
             return;
         }
 
+        // Create overlay window
+        _overlayWindow = new OverlayWindow
+        {
+            DataContext = _mainViewModel.OverlayViewModel
+        };
+
         // Setup system tray
         SetupTrayIcon();
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OnShowOverlayRequested(object? sender, EventArgs e)
+    {
+        _overlayWindow?.Show();
+    }
+
+    private void OnHideOverlayRequested(object? sender, EventArgs e)
+    {
+        _overlayWindow?.Hide();
+    }
+
+    private void OnOpenSettingsRequested(object? sender, EventArgs e)
+    {
+        if (_settingsWindow != null && _settingsWindow.IsVisible)
+        {
+            _settingsWindow.Activate();
+            return;
+        }
+
+        var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
+        _settingsWindow = new SettingsWindow(settingsService);
+        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Show();
     }
 
     private void ConfigureServices(IServiceCollection services)

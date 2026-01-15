@@ -1,0 +1,272 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="620"
+        x:Class="WisprClone.Views.SettingsWindow"
+        Title="WisprClone Settings"
+        Width="480" Height="620"
+        MinWidth="400" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        CanResize="True"
+        Background="#FF1E1E1E">
+
+    <Window.Styles>
+        <!-- Section header style -->
+        <Style Selector="TextBlock.sectionHeader">
+            <Setter Property="Foreground" Value="#FF3391FF"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,16,0,12"/>
+        </Style>
+
+        <!-- Label style -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- Info text style -->
+        <Style Selector="TextBlock.info">
+            <Setter Property="Foreground" Value="#FF808080"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <!-- TextBox style -->
+        <Style Selector="TextBox.settings">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style Selector="TextBox.settings:focus">
+            <Setter Property="BorderBrush" Value="#FF3391FF"/>
+        </Style>
+        <Style Selector="TextBox.settings:pointerover">
+            <Setter Property="BorderBrush" Value="#FF505050"/>
+        </Style>
+
+        <!-- ComboBox style -->
+        <Style Selector="ComboBox.settings">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,0,0,0"/>
+        </Style>
+        <Style Selector="ComboBox.settings:pointerover">
+            <Setter Property="BorderBrush" Value="#FF505050"/>
+        </Style>
+        <Style Selector="ComboBox.settings:focus">
+            <Setter Property="BorderBrush" Value="#FF3391FF"/>
+        </Style>
+
+        <!-- CheckBox style -->
+        <Style Selector="CheckBox.settings">
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+        </Style>
+
+        <!-- Primary button style -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#FF3391FF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#FF4DA3FF"/>
+        </Style>
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#FF2878D4"/>
+        </Style>
+
+        <!-- Secondary button style -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#FF3D3D3D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="#FF4D4D4D"/>
+        </Style>
+        <Style Selector="Button.secondary:pressed">
+            <Setter Property="Background" Value="#FF353535"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="24,24,6,24" RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,18,0">
+                <!-- Speech Provider Selection -->
+                <TextBlock Text="Speech Provider" Classes="sectionHeader" Margin="0,0,0,12"/>
+
+                <TextBlock Text="Select Provider" Classes="label"/>
+                <ComboBox x:Name="SpeechProviderComboBox" Classes="settings">
+                    <ComboBoxItem Content="Offline (Windows Speech)" Tag="Offline" IsSelected="True"/>
+                    <ComboBoxItem Content="Azure Speech Service" Tag="Azure"/>
+                    <ComboBoxItem Content="OpenAI Whisper" Tag="OpenAI"/>
+                </ComboBox>
+
+                <TextBlock x:Name="ProviderInfoText"
+                           Text="Note: Changing the speech provider requires an app restart to take effect."
+                           Classes="info"/>
+
+                <!-- Azure Settings -->
+                <TextBlock Text="Azure Speech Service" Classes="sectionHeader"/>
+
+                <TextBlock Text="Subscription Key" Classes="label"/>
+                <TextBox x:Name="AzureKeyTextBox" Classes="settings" PasswordChar="*"/>
+
+                <TextBlock Text="Region" Classes="label" Margin="0,12,0,6"/>
+                <TextBox x:Name="AzureRegionTextBox" Classes="settings"/>
+
+                <CheckBox x:Name="UseAzureFallbackCheckBox"
+                          Content="Use Azure as fallback when offline recognition fails"
+                          Classes="settings"
+                          Margin="0,12,0,0"/>
+
+                <!-- OpenAI Whisper Settings -->
+                <TextBlock Text="OpenAI Whisper" Classes="sectionHeader"/>
+
+                <TextBlock Text="API Key" Classes="label"/>
+                <TextBox x:Name="OpenAIKeyTextBox" Classes="settings" PasswordChar="*"/>
+
+                <TextBlock Text="Note: Whisper transcribes after you stop speaking (no real-time results)."
+                           Classes="info"/>
+
+                <!-- Language Settings -->
+                <TextBlock Text="Language" Classes="sectionHeader"/>
+
+                <TextBlock Text="Recognition Language" Classes="label"/>
+                <ComboBox x:Name="LanguageComboBox" Classes="settings">
+                    <ComboBoxItem Content="English (US)" Tag="en-US" IsSelected="True"/>
+                    <ComboBoxItem Content="English (UK)" Tag="en-GB"/>
+                    <ComboBoxItem Content="Romanian" Tag="ro-RO"/>
+                    <ComboBoxItem Content="Spanish" Tag="es-ES"/>
+                    <ComboBoxItem Content="French" Tag="fr-FR"/>
+                    <ComboBoxItem Content="German" Tag="de-DE"/>
+                    <ComboBoxItem Content="Italian" Tag="it-IT"/>
+                    <ComboBoxItem Content="Portuguese" Tag="pt-BR"/>
+                    <ComboBoxItem Content="Chinese (Simplified)" Tag="zh-CN"/>
+                    <ComboBoxItem Content="Japanese" Tag="ja-JP"/>
+                </ComboBox>
+
+                <!-- Hotkey Settings -->
+                <TextBlock Text="Hotkey" Classes="sectionHeader"/>
+
+                <Grid ColumnDefinitions="*,16,*">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Double-tap interval (ms)" Classes="label"/>
+                        <TextBox x:Name="DoubleTapIntervalTextBox" Classes="settings"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Max key hold (ms)" Classes="label"/>
+                        <TextBox x:Name="MaxKeyHoldTextBox" Classes="settings"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Recording Limits -->
+                <TextBlock Text="Recording Limits" Classes="sectionHeader"/>
+
+                <TextBlock Text="Maximum recording duration (seconds)" Classes="label"/>
+                <TextBox x:Name="MaxRecordingDurationTextBox" Classes="settings" Width="120" HorizontalAlignment="Left"/>
+                <TextBlock Text="Recording will automatically stop after this duration (10-600 seconds)."
+                           Classes="info"/>
+
+                <!-- Behavior Settings -->
+                <TextBlock Text="Behavior" Classes="sectionHeader"/>
+
+                <CheckBox x:Name="AutoCopyCheckBox"
+                          Content="Automatically copy transcription to clipboard"
+                          Classes="settings"
+                          Margin="0"/>
+
+                <CheckBox x:Name="StartMinimizedCheckBox"
+                          Content="Start minimized to system tray"
+                          Classes="settings"/>
+
+                <CheckBox x:Name="MinimizeToTrayCheckBox"
+                          Content="Minimize to system tray instead of taskbar"
+                          Classes="settings"/>
+
+                <!-- Debugging -->
+                <TextBlock Text="Debugging" Classes="sectionHeader"/>
+
+                <CheckBox x:Name="EnableLoggingCheckBox"
+                          Content="Enable logging"
+                          Classes="settings"
+                          Margin="0"/>
+                <TextBlock Text="Logs are saved to app data folder"
+                           Classes="info"
+                           Margin="0,4,0,0"/>
+
+                <!-- About -->
+                <TextBlock Text="About" Classes="sectionHeader"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="WisprClone"
+                               Foreground="#FFE0E0E0"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="VersionText"
+                               Text="v1.2.0"
+                               Foreground="#FF808080"
+                               FontSize="12"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Text="A cross-platform voice-to-text transcription tool."
+                           Foreground="#FF808080"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock Text="Double-tap Ctrl to start/stop dictation."
+                           Foreground="#FF808080"
+                           FontSize="11"
+                           TextWrapping="Wrap"/>
+
+                <Border Height="16"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Content="Cancel"
+                    Classes="secondary"
+                    Click="CancelButton_Click"
+                    Margin="0,0,12,0"/>
+            <Button Content="Save"
+                    Classes="primary"
+                    Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

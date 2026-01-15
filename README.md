@@ -1,10 +1,14 @@
 # WisprClone
 
-A Windows speech-to-text application inspired by WhisprFlow. Press **Ctrl+Ctrl** (double-tap) to start/stop speech recognition, and the transcribed text is automatically copied to your clipboard.
+A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **Ctrl+Ctrl** (double-tap) to start/stop speech recognition, and the transcribed text is automatically copied to your clipboard.
+
+[![CI](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/ci.yml/badge.svg)](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/ci.yml)
+[![Release](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/release.yml/badge.svg)](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/release.yml)
 
 ## Features
 
-- **Multiple Speech Providers**: Choose from Windows offline recognition, Azure Speech Service, or OpenAI Whisper
+- **Cross-Platform**: Runs on Windows, macOS, and Linux
+- **Multiple Speech Providers**: Choose from Windows offline recognition (Windows only), Azure Speech Service, or OpenAI Whisper
 - **Floating Overlay**: Semi-transparent overlay window showing real-time transcription
 - **Global Hotkey**: Double-tap Ctrl key to toggle speech recognition from anywhere
 - **System Tray**: Runs in the background with dynamic tray icon showing current state
@@ -13,25 +17,68 @@ A Windows speech-to-text application inspired by WhisprFlow. Press **Ctrl+Ctrl**
 - **Optional Logging**: Debug logging to help troubleshoot issues
 - **Customizable Settings**: Configure language, hotkey timing, API credentials, and more
 
+## Downloads
+
+Download the latest release for your platform from the [Releases](../../releases) page:
+
+| Platform | Architecture | Download |
+|----------|--------------|----------|
+| Windows | x64 | `WisprClone-Windows-x64-*.zip` |
+| Windows | ARM64 | `WisprClone-Windows-arm64-*.zip` |
+| macOS | Intel | `WisprClone-macOS-x64-*.tar.gz` |
+| macOS | Apple Silicon | `WisprClone-macOS-arm64-*.tar.gz` |
+| Linux | x64 | `WisprClone-Linux-x64-*.tar.gz` |
+| Linux | ARM64 | `WisprClone-Linux-arm64-*.tar.gz` |
+
 ## Installation
 
-### Option 1: Installer (Recommended)
+### Windows
 
-1. Download `WisprClone-Setup-1.2.0.exe` from the [Releases](../../releases) page
-2. Run the installer and follow the prompts
-3. Optionally enable "Start WisprClone when Windows starts"
+1. Download `WisprClone-Windows-x64-*.zip` from the [Releases](../../releases) page
+2. Extract the archive
+3. Run `WisprClone.exe`
 
-### Option 2: Build from Source
+**Alternative**: Use the Windows installer `WisprClone-Setup-*.exe` if available.
 
-See [Building from Source](#building-from-source) below.
+### macOS
+
+1. Download `WisprClone-macOS-arm64-*.tar.gz` (Apple Silicon) or `WisprClone-macOS-x64-*.tar.gz` (Intel)
+2. Extract: `tar -xzf WisprClone-macOS-*.tar.gz`
+3. Run: `./WisprClone-macOS-*/WisprClone`
+
+**Important**: On first launch, macOS will require you to grant:
+- **Accessibility** permission: System Preferences > Security & Privacy > Privacy > Accessibility
+- **Microphone** permission: Granted automatically on first use
+
+### Linux
+
+1. Download `WisprClone-Linux-x64-*.tar.gz`
+2. Extract: `tar -xzf WisprClone-Linux-x64-*.tar.gz`
+3. Run: `./WisprClone-Linux-x64/WisprClone`
+
+**Note**: Global keyboard hooks require X11. Wayland support is limited.
 
 ## Requirements
 
-- Windows 10 or Windows 11 (64-bit)
+### All Platforms
 - Microphone
-- For cloud recognition (optional):
+- For cloud recognition:
   - Azure Speech Service subscription, or
   - OpenAI API key
+
+### Platform-Specific
+- **Windows**: Windows 10/11 (x64 or ARM64)
+- **macOS**: macOS 10.15+ (Catalina or later)
+- **Linux**: X11 desktop environment (GNOME, KDE, etc.)
+
+### Speech Provider Availability
+
+| Provider | Windows | macOS | Linux |
+|----------|---------|-------|-------|
+| Offline (System.Speech) | Yes | No | No |
+| Azure Speech Service | Yes | Yes | Yes |
+| OpenAI Whisper | Yes | Yes | Yes |
+| Hybrid (Offline + Azure) | Yes | No | No |
 
 ## Usage
 
@@ -39,7 +86,7 @@ See [Building from Source](#building-from-source) below.
 2. **Press Ctrl+Ctrl** (double-tap Ctrl) - Start listening for speech
 3. **Speak** - Your words appear in real-time in the overlay
 4. **Press Ctrl+Ctrl again** - Stop listening and copy text to clipboard
-5. **Paste** (Ctrl+V) - Paste your transcribed text anywhere
+5. **Paste** (Ctrl+V / Cmd+V) - Paste your transcribed text anywhere
 
 ### System Tray
 
@@ -50,54 +97,25 @@ The tray icon changes color to indicate the current state:
 - **Red**: Error
 
 Actions:
-- **Double-click** the tray icon to toggle the overlay
-- **Right-click** for options:
-  - Show/Hide Overlay
-  - Settings
-  - About
-  - Exit
+- **Click** the tray icon to toggle the overlay
+- **Right-click** for options: Show/Hide Overlay, Settings, Exit
 
-### Settings
+## Settings
 
-Access settings from the system tray right-click menu or the Settings window:
-
-#### Speech Provider
-- **Offline (Windows)**: Uses Windows built-in speech recognition - no internet required
+### Speech Provider
+- **Offline (Windows only)**: Uses Windows built-in speech recognition - no internet required
 - **Azure Speech Service**: Cloud-based recognition with high accuracy
 - **OpenAI Whisper**: Uses OpenAI's Whisper model for transcription
-- **Hybrid**: Uses offline recognition with Azure fallback
 
-#### Recording Limits
-- **Maximum recording duration**: Auto-stop recording after specified seconds (10-600s, default 120s)
-- Useful as a safety feature if you forget to stop recording
+### Cloud Service Setup
 
-#### Hotkey Timing
-- **Double-tap interval**: Time window for detecting Ctrl double-tap (100-1000ms, default 400ms)
-- **Max key hold duration**: Maximum time key can be held for tap detection (50-500ms, default 200ms)
-
-#### Behavior
-- **Auto-copy to clipboard**: Automatically copy transcribed text when done
-- **Start minimized**: Start in system tray without showing overlay
-- **Minimize to tray**: Minimize to tray instead of taskbar
-
-#### Debugging
-- **Enable logging**: Write debug logs to `%APPDATA%\WisprClone\logs\`
-
-## Configuration
-
-Settings are stored in: `%APPDATA%\WisprClone\settings.json`
-
-Logs (when enabled) are stored in: `%APPDATA%\WisprClone\logs\wispr_YYYY-MM-DD.log`
-
-### Azure Speech Service Setup
-
+#### Azure Speech Service
 1. Create an [Azure Speech Service resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeechServices)
 2. Copy your subscription key and region (e.g., `eastus`, `westeurope`)
 3. Open Settings and select "Azure" as the speech provider
 4. Enter your subscription key and region
 
-### OpenAI Whisper Setup
-
+#### OpenAI Whisper
 1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Open Settings and select "OpenAI Whisper" as the speech provider
 3. Enter your OpenAI API key
@@ -107,72 +125,93 @@ Logs (when enabled) are stored in: `%APPDATA%\WisprClone\logs\wispr_YYYY-MM-DD.l
 ### Prerequisites
 
 1. Install [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-2. (Optional) [Visual Studio 2022](https://visualstudio.microsoft.com/) with WPF workload
-3. (Optional) [Inno Setup 6](https://jrsoftware.org/isdl.php) for building the installer
+2. (Optional) [Visual Studio 2022](https://visualstudio.microsoft.com/) or [JetBrains Rider](https://www.jetbrains.com/rider/)
 
-### Build Steps
+### Build Commands
 
 ```bash
 # Clone the repository
 git clone https://github.com/blockchainadvisors/wispr-clone.git
 cd wispr-clone
 
-# Restore NuGet packages
-dotnet restore
-
-# Build the project
-dotnet build
+# Build cross-platform Avalonia version
+dotnet build src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
 
 # Run the application
-dotnet run --project src/WisprClone/WisprClone.csproj
+dotnet run --project src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
+
+# Build Windows-only WPF version (Windows only)
+dotnet build src/WisprClone/WisprClone.csproj
 ```
 
-### Build for Release
+### Publish for Release
 
 ```bash
-# Build self-contained executable
-dotnet publish src/WisprClone/WisprClone.csproj -c Release -r win-x64 --self-contained
+# Windows x64
+dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+
+# macOS Apple Silicon
+dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
+
+# macOS Intel
+dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r osx-x64 --self-contained -p:PublishSingleFile=true
+
+# Linux x64
+dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
 ```
 
-The output will be in `src/WisprClone/bin/Release/net8.0-windows/win-x64/publish/`
+## Creating a Release
 
-### Build Installer
+Releases are automatically created by GitHub Actions when you push a version tag.
 
-Requires [Inno Setup 6](https://jrsoftware.org/isdl.php) to be installed.
+### Steps to Create a New Release
 
-```powershell
-# Run the installer build script
-.\installer\build-installer.ps1
+```bash
+# Make sure you're on the main branch with all changes committed
+git checkout main
+git pull
+
+# Create and push a version tag
+git tag v2.0.0
+git push origin v2.0.0
 ```
 
-The installer will be created in `installer/output/WisprClone-Setup-X.X.X.exe`
+The GitHub Actions workflow will automatically:
+1. Build the application for all platforms (Windows, macOS, Linux - both x64 and ARM64)
+2. Create platform-specific archives
+3. Create a GitHub Release with all artifacts attached
+4. Generate release notes from commit history
+
+### Version Tag Format
+
+- **Release**: `v1.0.0`, `v2.1.0`
+- **Pre-release**: `v1.0.0-beta.1`, `v2.0.0-alpha.1`, `v1.0.0-rc.1`
+
+Pre-release tags will create pre-release GitHub releases.
 
 ## Project Structure
 
 ```
 wispr-clone/
-├── WisprClone.sln                 # Solution file
-├── README.md                      # This file
-├── installer/
-│   ├── WisprClone.iss            # Inno Setup installer script
-│   ├── build-installer.ps1       # Installer build script
-│   ├── generate-icons.ps1        # Icon generation script
-│   └── output/                   # Built installers
-├── src/WisprClone/
-│   ├── Core/                     # Core types (states, events, constants)
-│   ├── Infrastructure/           # Low-level code (keyboard hooks, system tray)
-│   ├── Models/                   # Data models (settings)
-│   ├── Services/                 # Business logic services
-│   │   ├── Interfaces/           # Service interfaces
-│   │   └── Speech/               # Speech recognition implementations
-│   │       ├── OfflineSpeechRecognitionService.cs
-│   │       ├── AzureSpeechRecognitionService.cs
-│   │       ├── OpenAIWhisperSpeechRecognitionService.cs
-│   │       └── HybridSpeechRecognitionService.cs
-│   ├── ViewModels/               # MVVM view models
-│   ├── Views/                    # WPF windows and controls
-│   └── Resources/
-│       └── Icons/                # Application and tray icons
+├── .github/
+│   └── workflows/
+│       ├── ci.yml              # CI build on push/PR
+│       └── release.yml         # Release workflow on tag push
+├── WisprClone.sln              # Solution file
+├── README.md                   # This file
+├── installer/                  # Windows installer (Inno Setup)
+├── src/
+│   ├── WisprClone/             # Original WPF version (Windows only)
+│   └── WisprClone.Avalonia/    # Cross-platform Avalonia version
+│       ├── Core/               # Core types (states, events, constants)
+│       ├── Infrastructure/     # Keyboard hooks (SharpHook)
+│       ├── Models/             # Data models (settings)
+│       ├── Services/           # Business logic services
+│       │   ├── Interfaces/     # Service interfaces
+│       │   └── Speech/         # Speech recognition implementations
+│       ├── ViewModels/         # MVVM view models
+│       ├── Views/              # Avalonia windows
+│       └── Resources/          # Icons, styles
 ```
 
 ## Troubleshooting
@@ -180,8 +219,8 @@ wispr-clone/
 ### Speech recognition not working
 
 1. Ensure your microphone is set as the default recording device
-2. Check Windows privacy settings allow apps to access microphone
-3. For offline recognition, ensure Windows Speech Recognition is enabled
+2. Check system privacy settings allow apps to access microphone
+3. For offline recognition (Windows), ensure Windows Speech Recognition is enabled
 4. Try switching to a cloud provider (Azure/OpenAI) for better accuracy
 
 ### Hotkey not responding
@@ -189,33 +228,40 @@ wispr-clone/
 1. Try adjusting the double-tap interval in Settings (default: 400ms)
 2. Increase the value if double-taps are not being detected
 3. Decrease the value if accidental triggers occur
-4. Ensure no other application is capturing the Ctrl key globally
+4. **macOS**: Ensure Accessibility permission is granted
+5. **Linux**: Ensure you're running on X11 (not Wayland)
 
-### Azure not connecting
+### macOS Permissions
 
-1. Verify your subscription key and region are correct
-2. Check your internet connection
-3. Ensure Azure Speech Service is available in your region
-4. Check the logs (enable in Settings > Debugging) for error details
+If the global hotkey doesn't work:
+1. Open System Preferences > Security & Privacy > Privacy
+2. Select "Accessibility" from the sidebar
+3. Click the lock to make changes
+4. Add WisprClone to the list and enable it
 
-### OpenAI Whisper not working
+### Linux Global Keyboard
 
-1. Verify your API key is correct
-2. Check your OpenAI account has available credits
-3. Ensure your internet connection is stable
-4. Check the logs for error details
-
-### Recording stops unexpectedly
-
-1. Check the "Maximum recording duration" setting
-2. The default is 120 seconds (2 minutes)
-3. Increase this value in Settings if you need longer recordings
+Global keyboard hooks require X11. If using Wayland:
+- Try running with `XDG_SESSION_TYPE=x11`
+- Or use XWayland compatibility mode
 
 ## Version History
 
+- **2.0.0** - Cross-platform support (Windows, macOS, Linux) using Avalonia UI
 - **1.2.0** - Added About dialog, version display in settings
 - **1.1.0** - Added installer with version checking, icon pack, logging options
 - **1.0.0** - Initial release with core functionality
+
+## Tech Stack
+
+- **UI Framework**: [Avalonia UI](https://avaloniaui.net/) (cross-platform)
+- **Keyboard Hooks**: [SharpHook](https://github.com/TolikPyl662/SharpHook) (cross-platform)
+- **Speech Recognition**:
+  - [System.Speech](https://www.nuget.org/packages/System.Speech) (Windows offline)
+  - [Azure Cognitive Services Speech SDK](https://www.nuget.org/packages/Microsoft.CognitiveServices.Speech)
+  - [OpenAI API](https://platform.openai.com/)
+- **Audio**: [NAudio](https://github.com/naudio/NAudio) (Windows)
+- **MVVM**: [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet)
 
 ## License
 
@@ -224,8 +270,3 @@ This project is provided as-is for educational purposes.
 ## Acknowledgments
 
 - Inspired by [Wispr Flow](https://wisprflow.com/)
-- Uses [System.Speech](https://www.nuget.org/packages/System.Speech) for offline recognition
-- Uses [Azure Cognitive Services Speech SDK](https://www.nuget.org/packages/Microsoft.CognitiveServices.Speech) for cloud recognition
-- Uses [OpenAI API](https://platform.openai.com/) for Whisper transcription
-- Uses [NAudio](https://github.com/naudio/NAudio) for audio capture
-- Uses [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) for MVVM pattern
