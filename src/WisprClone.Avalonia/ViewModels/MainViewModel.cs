@@ -44,6 +44,11 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     /// </summary>
     public event EventHandler? OpenSettingsRequested;
 
+    /// <summary>
+    /// Raised when about window should be opened.
+    /// </summary>
+    public event EventHandler? OpenAboutRequested;
+
     [ObservableProperty]
     private bool _isTranscribing;
 
@@ -341,6 +346,14 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         Dispatcher.UIThread.Post(() =>
         {
             OpenSettingsRequested?.Invoke(this, EventArgs.Empty);
+        });
+    }
+
+    public void OpenAbout()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            OpenAboutRequested?.Invoke(this, EventArgs.Empty);
         });
     }
 

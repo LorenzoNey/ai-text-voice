@@ -39,4 +39,10 @@ public partial class SystemTrayViewModel : ViewModelBase
     {
         _mainViewModel.OpenSettings();
     }
+
+    [RelayCommand]
+    public void OpenAbout()
+    {
+        _mainViewModel.OpenAbout();
+    }
 }

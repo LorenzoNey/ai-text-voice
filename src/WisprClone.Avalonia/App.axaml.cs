@@ -23,6 +23,7 @@ public partial class App : Application
     private TrayIcons? _trayIcons; // Keep reference to prevent GC
     private OverlayWindow? _overlayWindow;
     private SettingsWindow? _settingsWindow;
+    private AboutWindow? _aboutWindow;
 
     public override void Initialize()
     {
@@ -43,6 +44,7 @@ public partial class App : Application
         _mainViewModel.ShowOverlayRequested += OnShowOverlayRequested;
         _mainViewModel.HideOverlayRequested += OnHideOverlayRequested;
         _mainViewModel.OpenSettingsRequested += OnOpenSettingsRequested;
+        _mainViewModel.OpenAboutRequested += OnOpenAboutRequested;
 
         try
         {
@@ -92,6 +94,19 @@ public partial class App : Application
         _settingsWindow = new SettingsWindow(settingsService);
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
+    }
+
+    private void OnOpenAboutRequested(object? sender, EventArgs e)
+    {
+        if (_aboutWindow != null && _aboutWindow.IsVisible)
+        {
+            _aboutWindow.Activate();
+            return;
+        }
+
+        _aboutWindow = new AboutWindow();
+        _aboutWindow.Closed += (_, _) => _aboutWindow = null;
+        _aboutWindow.Show();
     }
 
     private void ConfigureServices(IServiceCollection services)
@@ -200,6 +215,10 @@ public partial class App : Application
         var settingsItem = new NativeMenuItem("Settings...");
         settingsItem.Click += (_, _) => viewModel.OpenSettingsCommand.Execute(null);
         menu.Items.Add(settingsItem);
+
+        var aboutItem = new NativeMenuItem("About...");
+        aboutItem.Click += (_, _) => viewModel.OpenAboutCommand.Execute(null);
+        menu.Items.Add(aboutItem);
 
         menu.Items.Add(new NativeMenuItemSeparator());
 

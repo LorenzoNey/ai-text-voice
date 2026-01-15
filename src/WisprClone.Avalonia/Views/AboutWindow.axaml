@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WisprClone.Views.AboutWindow"
+        Title="About WisprClone"
+        Width="400" Height="280"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#FF1E1E1E">
+
+    <Grid Margin="32">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <!-- App Icon -->
+            <Image Source="avares://WisprClone/Resources/Icons/app_icon.png"
+                   Width="64" Height="64"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,16"/>
+
+            <!-- App Name -->
+            <TextBlock Text="WisprClone"
+                       Foreground="White"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Version -->
+            <TextBlock x:Name="VersionText"
+                       Text="Version 2.0.0"
+                       Foreground="#FF808080"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Margin="0,4,0,16"/>
+
+            <!-- Description -->
+            <TextBlock Text="Cross-platform speech-to-text application"
+                       Foreground="#FFB0B0B0"
+                       FontSize="12"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,0,0,8"/>
+
+            <TextBlock Text="Powered by Azure Speech Services and OpenAI Whisper"
+                       Foreground="#FF808080"
+                       FontSize="11"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,0,0,24"/>
+
+            <!-- Close Button -->
+            <Button Content="OK"
+                    HorizontalAlignment="Center"
+                    Width="100"
+                    Background="#FF3391FF"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="16,8"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
