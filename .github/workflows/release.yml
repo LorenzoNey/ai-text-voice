@@ -206,7 +206,7 @@ jobs:
               <key>CFBundleDisplayName</key>
               <string>WisprClone</string>
               <key>CFBundleIdentifier</key>
-              <string>com.blockchainadvisors.wisprclone</string>
+              <string>com.lorenzoneywisprclone</string>
               <key>CFBundleVersion</key>
               <string>${{ steps.version.outputs.VERSION }}</string>
               <key>CFBundleShortVersionString</key>

@@ -53,7 +53,7 @@ public static class Constants
     /// <summary>
     /// GitHub repository owner.
     /// </summary>
-    public const string GitHubOwner = "blockchainadvisors";
+    public const string GitHubOwner = "LorenzoNey";
 
     /// <summary>
     /// GitHub repository name.

@@ -2,8 +2,8 @@
 
 A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **Ctrl+Ctrl** (double-tap) to start/stop speech recognition, and the transcribed text is automatically copied to your clipboard.
 
-[![Release](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/release.yml/badge.svg)](https://github.com/blockchainadvisors/wispr-clone/actions/workflows/release.yml)
-[![Latest Version](https://img.shields.io/badge/latest-v2.2.4-blue)](https://github.com/blockchainadvisors/wispr-clone/releases/latest)
+[![Release](https://github.com/LorenzoNey/wispr-clone/actions/workflows/release.yml/badge.svg)](https://github.com/LorenzoNey/wispr-clone/actions/workflows/release.yml)
+[![Latest Version](https://img.shields.io/badge/latest-v2.2.8-blue)](https://github.com/LorenzoNey/wispr-clone/releases/latest)
 
 ## Features
 
@@ -19,16 +19,16 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 
 ## Downloads
 
-> **[Download Latest Release](https://github.com/blockchainadvisors/wispr-clone/releases/latest)**
+> **[Download Latest Release](https://github.com/LorenzoNey/wispr-clone/releases/latest)**
 
 | Platform | Architecture | Download |
 |----------|--------------|----------|
-| Windows | x64 | [WisprClone-Windows-x64.zip](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
-| Windows | ARM64 | [WisprClone-Windows-arm64.zip](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
-| macOS | Intel | [WisprClone-macOS-x64.tar.gz](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
-| macOS | Apple Silicon | [WisprClone-macOS-arm64.tar.gz](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
-| Linux | x64 | [WisprClone-Linux-x64.tar.gz](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
-| Linux | ARM64 | [WisprClone-Linux-arm64.tar.gz](https://github.com/blockchainadvisors/wispr-clone/releases/latest) |
+| Windows | x64 | [WisprClone-Windows-x64.zip](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Windows | ARM64 | [WisprClone-Windows-arm64.zip](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| macOS | Intel | [WisprClone-macOS-x64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| macOS | Apple Silicon | [WisprClone-macOS-arm64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Linux | x64 | [WisprClone-Linux-x64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Linux | ARM64 | [WisprClone-Linux-arm64.tar.gz](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
 
 ## Installation
 
@@ -147,7 +147,7 @@ Both OpenAI providers use the same API key.
 
 ```bash
 # Clone the repository
-git clone https://github.com/blockchainadvisors/wispr-clone.git
+git clone https://github.com/LorenzoNey/wispr-clone.git
 cd wispr-clone
 
 # Build the project
