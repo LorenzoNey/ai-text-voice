@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.wisprclone.app</string>
+    <key>CFBundleName</key>
+    <string>WisprClone</string>
+    <key>CFBundleDisplayName</key>
+    <string>WisprClone</string>
+    <key>CFBundleVersion</key>
+    <string>2.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.0.0</string>
+    <key>CFBundleExecutable</key>
+    <string>WisprClone</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>WisprClone needs access to your microphone for speech-to-text transcription.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>WisprClone needs accessibility access to detect global keyboard shortcuts.</string>
+</dict>
+</plist>
