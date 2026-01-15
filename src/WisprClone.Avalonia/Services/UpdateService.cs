@@ -1,4 +1,6 @@
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;

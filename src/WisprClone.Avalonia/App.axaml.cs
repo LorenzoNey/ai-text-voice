@@ -27,6 +27,7 @@ public partial class App : Application
     private OverlayWindow? _overlayWindow;
     private SettingsWindow? _settingsWindow;
     private AboutWindow? _aboutWindow;
+    private NativeMenu? _trayMenu;
     private NativeMenuItem? _updateMenuItem;
     private NativeMenuItemSeparator? _updateSeparator;
     private IUpdateService? _updateService;
@@ -112,15 +113,25 @@ public partial class App : Application
         {
             _updateAvailable = true;
 
-            // Show update menu item
-            if (_updateMenuItem != null)
+            // Add update menu items dynamically if not already added
+            if (_trayMenu != null && _updateMenuItem == null)
             {
-                _updateMenuItem.Header = $"Update Available (v{e.LatestVersion.Major}.{e.LatestVersion.Minor}.{e.LatestVersion.Build})";
-                _updateMenuItem.IsVisible = true;
+                // Find the index of the last separator (before Exit)
+                int exitSeparatorIndex = _trayMenu.Items.Count - 2; // Separator is second to last
+
+                // Create and insert update separator
+                _updateSeparator = new NativeMenuItemSeparator();
+                _trayMenu.Items.Insert(exitSeparatorIndex, _updateSeparator);
+
+                // Create and insert update menu item
+                _updateMenuItem = new NativeMenuItem($"Update Available (v{e.LatestVersion.Major}.{e.LatestVersion.Minor}.{e.LatestVersion.Build})");
+                _updateMenuItem.Click += (_, _) => SafeExecute(() => OnUpdateMenuClicked(), "Update");
+                _trayMenu.Items.Insert(exitSeparatorIndex + 1, _updateMenuItem);
             }
-            if (_updateSeparator != null)
+            else if (_updateMenuItem != null)
             {
-                _updateSeparator.IsVisible = true;
+                // Update existing menu item text
+                _updateMenuItem.Header = $"Update Available (v{e.LatestVersion.Major}.{e.LatestVersion.Minor}.{e.LatestVersion.Build})";
             }
 
             // Update tray icon to show update indicator
@@ -323,37 +334,29 @@ public partial class App : Application
 
     private NativeMenu CreateTrayMenu(SystemTrayViewModel viewModel)
     {
-        var menu = new NativeMenu();
+        _trayMenu = new NativeMenu();
 
         var showItem = new NativeMenuItem("Show Overlay");
         showItem.Click += (_, _) => SafeExecute(() => viewModel.ShowOverlayCommand.Execute(null), "Show Overlay");
-        menu.Items.Add(showItem);
+        _trayMenu.Items.Add(showItem);
 
         var hideItem = new NativeMenuItem("Hide Overlay");
         hideItem.Click += (_, _) => SafeExecute(() => viewModel.HideOverlayCommand.Execute(null), "Hide Overlay");
-        menu.Items.Add(hideItem);
+        _trayMenu.Items.Add(hideItem);
 
-        menu.Items.Add(new NativeMenuItemSeparator());
+        _trayMenu.Items.Add(new NativeMenuItemSeparator());
 
         var settingsItem = new NativeMenuItem("Settings...");
         settingsItem.Click += (_, _) => SafeExecute(() => viewModel.OpenSettingsCommand.Execute(null), "Open Settings");
-        menu.Items.Add(settingsItem);
+        _trayMenu.Items.Add(settingsItem);
 
         var aboutItem = new NativeMenuItem("About...");
         aboutItem.Click += (_, _) => SafeExecute(() => viewModel.OpenAboutCommand.Execute(null), "Open About");
-        menu.Items.Add(aboutItem);
+        _trayMenu.Items.Add(aboutItem);
 
-        // Update menu item (hidden until update is available)
-        _updateSeparator = new NativeMenuItemSeparator();
-        _updateSeparator.IsVisible = false;
-        menu.Items.Add(_updateSeparator);
+        // Note: Update separator and menu item will be added dynamically when an update is available
 
-        _updateMenuItem = new NativeMenuItem("Update Available");
-        _updateMenuItem.Click += (_, _) => SafeExecute(() => OnUpdateMenuClicked(), "Update");
-        _updateMenuItem.IsVisible = false;
-        menu.Items.Add(_updateMenuItem);
-
-        menu.Items.Add(new NativeMenuItemSeparator());
+        _trayMenu.Items.Add(new NativeMenuItemSeparator());
 
         var exitItem = new NativeMenuItem("Exit");
         exitItem.Click += (_, _) =>
@@ -363,9 +366,9 @@ public partial class App : Application
                 desktop.Shutdown();
             }
         };
-        menu.Items.Add(exitItem);
+        _trayMenu.Items.Add(exitItem);
 
-        return menu;
+        return _trayMenu;
     }
 
     private void SafeExecute(Action action, string actionName)
