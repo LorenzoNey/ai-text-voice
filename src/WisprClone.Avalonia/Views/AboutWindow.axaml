@@ -50,11 +50,13 @@
             <!-- Close Button -->
             <Button Content="OK"
                     HorizontalAlignment="Center"
+                    HorizontalContentAlignment="Center"
                     Width="100"
                     Background="#FF3391FF"
                     Foreground="White"
                     BorderThickness="0"
                     Padding="16,8"
+                    CornerRadius="4"
                     Click="CloseButton_Click"/>
         </StackPanel>
     </Grid>

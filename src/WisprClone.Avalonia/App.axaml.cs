@@ -341,17 +341,17 @@ public partial class App : Application
         aboutItem.Click += (_, _) => SafeExecute(() => viewModel.OpenAboutCommand.Execute(null), "Open About");
         menu.Items.Add(aboutItem);
 
-        menu.Items.Add(new NativeMenuItemSeparator());
-
         // Update menu item (hidden until update is available)
+        _updateSeparator = new NativeMenuItemSeparator();
+        _updateSeparator.IsVisible = false;
+        menu.Items.Add(_updateSeparator);
+
         _updateMenuItem = new NativeMenuItem("Update Available");
         _updateMenuItem.Click += (_, _) => SafeExecute(() => OnUpdateMenuClicked(), "Update");
         _updateMenuItem.IsVisible = false;
         menu.Items.Add(_updateMenuItem);
 
-        _updateSeparator = new NativeMenuItemSeparator();
-        _updateSeparator.IsVisible = false;
-        menu.Items.Add(_updateSeparator);
+        menu.Items.Add(new NativeMenuItemSeparator());
 
         var exitItem = new NativeMenuItem("Exit");
         exitItem.Click += (_, _) =>
