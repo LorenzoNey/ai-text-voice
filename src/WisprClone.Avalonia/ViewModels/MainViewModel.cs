@@ -20,6 +20,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private OverlayViewModel? _overlayViewModel;
     private CancellationTokenSource? _recognitionCts;
+    private CancellationTokenRegistration? _maxDurationRegistration;
     private TranscriptionState _currentState = TranscriptionState.Idle;
     private readonly object _stateLock = new();
     private bool _disposed;
@@ -151,6 +152,14 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         if (maxDurationSeconds > 0)
         {
             _recognitionCts.CancelAfter(TimeSpan.FromSeconds(maxDurationSeconds));
+
+            // Register callback to handle max duration timeout
+            // This is needed because StartRecognitionAsync returns immediately
+            _maxDurationRegistration = _recognitionCts.Token.Register(() =>
+            {
+                Log($"Max recording duration ({maxDurationSeconds}s) reached, stopping recording");
+                _ = HandleRecordingTimeoutAsync();
+            });
         }
 
         try
@@ -160,10 +169,6 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             IsTranscribing = true;
 
             await _speechService.StartRecognitionAsync(_recognitionCts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            await HandleRecordingTimeoutAsync();
         }
         catch (Exception)
         {
@@ -176,7 +181,9 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private async Task HandleRecordingTimeoutAsync()
     {
-        SetState(TranscriptionState.Processing);
+        // Only handle timeout if we're still listening (user might have stopped manually)
+        if (!TryTransitionState(TranscriptionState.Listening, TranscriptionState.Processing))
+            return;
 
         try
         {
@@ -202,6 +209,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
         finally
         {
+            _maxDurationRegistration?.Dispose();
+            _maxDurationRegistration = null;
             _recognitionCts?.Dispose();
             _recognitionCts = null;
         }
@@ -236,6 +245,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
         finally
         {
+            _maxDurationRegistration?.Dispose();
+            _maxDurationRegistration = null;
             _recognitionCts?.Dispose();
             _recognitionCts = null;
         }
@@ -382,6 +393,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _hotkeyDetector.Dispose();
         _keyboardHook.Dispose();
         _speechService.Dispose();
+        _maxDurationRegistration?.Dispose();
         _recognitionCts?.Dispose();
 
         Dispatcher.UIThread.Post(() =>

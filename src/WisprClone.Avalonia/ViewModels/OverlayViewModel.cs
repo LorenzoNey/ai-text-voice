@@ -37,6 +37,8 @@ public partial class OverlayViewModel : ViewModelBase
     private readonly ISpeechRecognitionService _speechService;
     private readonly ISettingsService _settingsService;
     private readonly AudioLevelMonitor _audioMonitor;
+    private readonly DispatcherTimer _elapsedTimer;
+    private DateTime _recordingStartTime;
 
     /// <summary>
     /// Raised when the overlay requests to be hidden.
@@ -120,11 +122,25 @@ public partial class OverlayViewModel : ViewModelBase
     [ObservableProperty]
     private double _audioLevel5 = 4;
 
+    // Elapsed recording time display (e.g., "0:00", "1:23")
+    [ObservableProperty]
+    private string _elapsedTimeDisplay = "0:00";
+
+    [ObservableProperty]
+    private bool _showElapsedTime;
+
     public OverlayViewModel(ISpeechRecognitionService speechService, ISettingsService settingsService)
     {
         _speechService = speechService;
         _settingsService = settingsService;
         _audioMonitor = new AudioLevelMonitor();
+
+        // Initialize elapsed time timer
+        _elapsedTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        _elapsedTimer.Tick += OnElapsedTimerTick;
 
         // Load saved position
         WindowLeft = settingsService.Current.OverlayLeft;
@@ -318,16 +334,34 @@ public partial class OverlayViewModel : ViewModelBase
             _ => ("Unknown", GrayBrush, false)
         };
 
-        // Start/stop audio level monitoring based on listening state
+        // Start/stop audio level monitoring and elapsed timer based on listening state
         if (IsListening && !wasListening)
         {
             _audioMonitor.Start();
             TranscriptionText = "Listening...";
+
+            // Start elapsed time tracking
+            _recordingStartTime = DateTime.Now;
+            ElapsedTimeDisplay = "0:00";
+            ShowElapsedTime = true;
+            _elapsedTimer.Start();
         }
         else if (!IsListening && wasListening)
         {
             _audioMonitor.Stop();
+
+            // Stop elapsed time tracking
+            _elapsedTimer.Stop();
+            ShowElapsedTime = false;
         }
+    }
+
+    private void OnElapsedTimerTick(object? sender, EventArgs e)
+    {
+        var elapsed = DateTime.Now - _recordingStartTime;
+        ElapsedTimeDisplay = elapsed.TotalHours >= 1
+            ? $"{(int)elapsed.TotalHours}:{elapsed.Minutes:D2}:{elapsed.Seconds:D2}"
+            : $"{(int)elapsed.TotalMinutes}:{elapsed.Seconds:D2}";
     }
 
     /// <summary>
