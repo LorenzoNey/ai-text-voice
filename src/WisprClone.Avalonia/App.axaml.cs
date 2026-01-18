@@ -31,6 +31,7 @@ public partial class App : Application
     private NativeMenuItem? _updateMenuItem;
     private NativeMenuItemSeparator? _updateSeparator;
     private IUpdateService? _updateService;
+    private ILoggingService? _loggingService;
     private bool _updateAvailable;
 
     public override void Initialize()
@@ -44,6 +45,9 @@ public partial class App : Application
         var services = new ServiceCollection();
         ConfigureServices(services);
         _serviceProvider = services.BuildServiceProvider();
+
+        // Initialize logging service first
+        _loggingService = _serviceProvider.GetRequiredService<ILoggingService>();
 
         // Subscribe to shutdown event to properly dispose resources
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -251,6 +255,9 @@ public partial class App : Application
         // Settings (cross-platform)
         services.AddSingleton<ISettingsService, SettingsService>();
 
+        // Logging service (must be after SettingsService)
+        services.AddSingleton<ILoggingService, LoggingService>();
+
         // Clipboard service (cross-platform via Avalonia)
         services.AddSingleton<IClipboardService, AvaloniaClipboardService>();
 
@@ -282,7 +289,8 @@ public partial class App : Application
         services.AddSingleton<ISpeechRecognitionService>(sp =>
         {
             var settings = sp.GetRequiredService<ISettingsService>();
-            Log($"Initial speech provider: {settings.Current.SpeechProvider}");
+            var logging = sp.GetRequiredService<ILoggingService>();
+            logging.Log("App", $"Initial speech provider: {settings.Current.SpeechProvider}");
 
             return new SpeechServiceManager(
                 sp.GetRequiredService<OfflineSpeechRecognitionService>(),
@@ -297,12 +305,14 @@ public partial class App : Application
         services.AddSingleton<ISpeechRecognitionService>(sp =>
         {
             var settings = sp.GetRequiredService<ISettingsService>();
-            Log($"Initial speech provider (non-Windows): {settings.Current.SpeechProvider}");
+            var logging = sp.GetRequiredService<ILoggingService>();
+            logging.Log("App", $"Initial speech provider (non-Windows): {settings.Current.SpeechProvider}");
 
             return new CrossPlatformSpeechServiceManager(
                 sp.GetRequiredService<AzureSpeechRecognitionService>(),
                 sp.GetRequiredService<OpenAIWhisperSpeechRecognitionService>(),
-                settings);
+                settings,
+                logging);
         });
 #endif
 
@@ -504,12 +514,8 @@ public partial class App : Application
         Environment.Exit(0);
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [App] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService?.Log("App", message);
     }
 }

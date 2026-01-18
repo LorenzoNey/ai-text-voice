@@ -17,6 +17,7 @@ namespace WisprClone.Services;
 public class UpdateService : IUpdateService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILoggingService _loggingService;
     private readonly SemaphoreSlim _checkLock = new(1, 1);
     private PeriodicTimer? _periodicTimer;
     private CancellationTokenSource? _periodicCts;
@@ -32,8 +33,9 @@ public class UpdateService : IUpdateService
     public event EventHandler<UpdateAvailableEventArgs>? UpdateAvailable;
     public event EventHandler<UpdateDownloadProgressEventArgs>? DownloadProgressChanged;
 
-    public UpdateService()
+    public UpdateService(ILoggingService loggingService)
     {
+        _loggingService = loggingService;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"{Constants.AppName}-UpdateChecker");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
@@ -138,13 +140,9 @@ public class UpdateService : IUpdateService
         }
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [UpdateService] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService.Log("UpdateService", message);
     }
 
     public void StopPeriodicChecks()

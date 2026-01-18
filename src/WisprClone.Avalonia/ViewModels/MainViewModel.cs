@@ -17,6 +17,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly ISettingsService _settingsService;
     private readonly IGlobalKeyboardHook _keyboardHook;
     private readonly IKeyboardSimulationService _keyboardSimulator;
+    private readonly ILoggingService _loggingService;
     private readonly DoubleKeyTapDetector _hotkeyDetector;
 
     private OverlayViewModel? _overlayViewModel;
@@ -61,13 +62,15 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         IClipboardService clipboardService,
         ISettingsService settingsService,
         IGlobalKeyboardHook keyboardHook,
-        IKeyboardSimulationService keyboardSimulator)
+        IKeyboardSimulationService keyboardSimulator,
+        ILoggingService loggingService)
     {
         _speechService = speechService;
         _clipboardService = clipboardService;
         _settingsService = settingsService;
         _keyboardHook = keyboardHook;
         _keyboardSimulator = keyboardSimulator;
+        _loggingService = loggingService;
 
         var settings = settingsService.Current;
         _hotkeyDetector = new DoubleKeyTapDetector(
@@ -123,25 +126,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private void Log(string message)
     {
-        if (!_settingsService.Current.EnableLogging)
-            return;
-
-        try
-        {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var logsDir = Path.Combine(appData, Constants.AppName, "logs");
-            Directory.CreateDirectory(logsDir);
-
-            var logFileName = $"wispr_{DateTime.Now:yyyy-MM-dd}.log";
-            var logPath = Path.Combine(logsDir, logFileName);
-
-            var line = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
-            File.AppendAllText(logPath, line + Environment.NewLine);
-        }
-        catch
-        {
-            // Silently ignore logging errors
-        }
+        _loggingService.Log("MainViewModel", message);
     }
 
     private async Task StartTranscriptionAsync()

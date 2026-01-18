@@ -23,6 +23,7 @@ public class OpenAIRealtimeSpeechRecognitionService : ISpeechRecognitionService
     private const int Channels = 1;
     private const int BufferMs = 100; // Send audio every 100ms
 
+    private readonly ILoggingService _loggingService;
     private string _apiKey = string.Empty;
     private ClientWebSocket? _webSocket;
     private CancellationTokenSource? _cts;
@@ -47,11 +48,14 @@ public class OpenAIRealtimeSpeechRecognitionService : ISpeechRecognitionService
     public string CurrentLanguage { get; private set; } = "en";
     public bool IsAvailable => !string.IsNullOrEmpty(_apiKey);
 
-    private static void Log(string message)
+    public OpenAIRealtimeSpeechRecognitionService(ILoggingService loggingService)
     {
-        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [OpenAI-RT] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService = loggingService;
+    }
+
+    private void Log(string message)
+    {
+        _loggingService.Log("OpenAI-RT", message);
     }
 
     /// <summary>

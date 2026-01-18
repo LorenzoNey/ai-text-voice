@@ -18,6 +18,7 @@ namespace WisprClone.Services.Speech;
 /// </summary>
 public class OpenAIWhisperSpeechRecognitionService : ISpeechRecognitionService
 {
+    private readonly ILoggingService _loggingService;
     private string _apiKey = string.Empty;
     private string _language = "en";
 #if WINDOWS
@@ -54,6 +55,11 @@ public class OpenAIWhisperSpeechRecognitionService : ISpeechRecognitionService
 #else
     public bool IsAvailable => false; // TODO: Implement cross-platform audio capture
 #endif
+
+    public OpenAIWhisperSpeechRecognitionService(ILoggingService loggingService)
+    {
+        _loggingService = loggingService;
+    }
 
     public void Configure(string apiKey)
     {
@@ -351,11 +357,9 @@ public class OpenAIWhisperSpeechRecognitionService : ISpeechRecognitionService
         StateChanged?.Invoke(this, new RecognitionStateChangedEventArgs(oldState, newState));
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
-        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Whisper] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService.Log("Whisper", message);
     }
 
     public void Dispose()

@@ -12,6 +12,7 @@ public class CrossPlatformSpeechServiceManager : ISpeechRecognitionService
     private readonly AzureSpeechRecognitionService _azureService;
     private readonly OpenAIWhisperSpeechRecognitionService _whisperService;
     private readonly ISettingsService _settingsService;
+    private readonly ILoggingService _loggingService;
 
     private ISpeechRecognitionService _activeService;
     private bool _isInitialized;
@@ -31,11 +32,13 @@ public class CrossPlatformSpeechServiceManager : ISpeechRecognitionService
     public CrossPlatformSpeechServiceManager(
         AzureSpeechRecognitionService azureService,
         OpenAIWhisperSpeechRecognitionService whisperService,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        ILoggingService loggingService)
     {
         _azureService = azureService;
         _whisperService = whisperService;
         _settingsService = settingsService;
+        _loggingService = loggingService;
 
         // Start with Azure as default for non-Windows (more reliable than Whisper without NAudio)
         _activeService = GetServiceForProvider(settingsService.Current.SpeechProvider);
@@ -170,10 +173,8 @@ public class CrossPlatformSpeechServiceManager : ISpeechRecognitionService
         _whisperService.Dispose();
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
-        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [CrossPlatformManager] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService.Log("CrossPlatformManager", message);
     }
 }

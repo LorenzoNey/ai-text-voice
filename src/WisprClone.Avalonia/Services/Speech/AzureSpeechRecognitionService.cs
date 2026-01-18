@@ -12,6 +12,7 @@ namespace WisprClone.Services.Speech;
 /// </summary>
 public class AzureSpeechRecognitionService : ISpeechRecognitionService
 {
+    private readonly ILoggingService _loggingService;
     private string _subscriptionKey = string.Empty;
     private string _region = string.Empty;
 
@@ -31,11 +32,14 @@ public class AzureSpeechRecognitionService : ISpeechRecognitionService
     public string CurrentLanguage { get; private set; } = "en-US";
     public bool IsAvailable => !string.IsNullOrEmpty(_subscriptionKey) && !string.IsNullOrEmpty(_region);
 
-    private static void Log(string message)
+    public AzureSpeechRecognitionService(ILoggingService loggingService)
     {
-        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Azure] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService = loggingService;
+    }
+
+    private void Log(string message)
+    {
+        _loggingService.Log("Azure", message);
     }
 
     /// <summary>

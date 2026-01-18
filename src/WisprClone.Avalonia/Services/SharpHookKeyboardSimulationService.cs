@@ -1,7 +1,6 @@
 using SharpHook;
 using SharpHook.Native;
 using WisprClone.Services.Interfaces;
-using System.IO;
 
 namespace WisprClone.Services;
 
@@ -12,12 +11,14 @@ namespace WisprClone.Services;
 public class SharpHookKeyboardSimulationService : IKeyboardSimulationService
 {
     private readonly ISettingsService _settingsService;
+    private readonly ILoggingService _loggingService;
     private readonly EventSimulator _simulator;
     private bool _disposed;
 
-    public SharpHookKeyboardSimulationService(ISettingsService settingsService)
+    public SharpHookKeyboardSimulationService(ISettingsService settingsService, ILoggingService loggingService)
     {
         _settingsService = settingsService;
+        _loggingService = loggingService;
         _simulator = new EventSimulator();
     }
 
@@ -73,13 +74,9 @@ public class SharpHookKeyboardSimulationService : IKeyboardSimulationService
         Log($"Modifier release result: {result}");
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
-        var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "WisprClone", "wispr_log.txt");
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [KeyboardSim] {message}";
-        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
+        _loggingService.Log("KeyboardSim", message);
     }
 
     public void Dispose()
