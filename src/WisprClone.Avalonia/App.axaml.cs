@@ -170,14 +170,17 @@ public partial class App : Application
         }
     }
 
-    private void OnShowOverlayRequested(object? sender, EventArgs e)
+    private void OnShowOverlayRequested(object? sender, bool activate)
     {
         try
         {
             if (_overlayWindow != null)
             {
                 _overlayWindow.Show();
-                _overlayWindow.Activate();
+                if (activate)
+                {
+                    _overlayWindow.Activate();
+                }
             }
         }
         catch (Exception ex)

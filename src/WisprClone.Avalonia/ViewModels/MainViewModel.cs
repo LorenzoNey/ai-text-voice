@@ -32,9 +32,9 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public event EventHandler<TranscriptionState>? StateChanged;
 
     /// <summary>
-    /// Raised when overlay should be shown.
+    /// Raised when overlay should be shown. Boolean indicates whether to activate (steal focus).
     /// </summary>
-    public event EventHandler? ShowOverlayRequested;
+    public event EventHandler<bool>? ShowOverlayRequested;
 
     /// <summary>
     /// Raised when overlay should be hidden.
@@ -167,7 +167,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
         try
         {
-            ShowOverlay();
+            ShowOverlay(activate: false); // Don't steal focus from current app
             SetState(TranscriptionState.Listening);
             IsTranscribing = true;
 
@@ -337,12 +337,12 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public void ShowOverlay()
+    public void ShowOverlay(bool activate = true)
     {
         Dispatcher.UIThread.Post(() =>
         {
             _overlayViewModel?.Show();
-            ShowOverlayRequested?.Invoke(this, EventArgs.Empty);
+            ShowOverlayRequested?.Invoke(this, activate);
         });
     }
 

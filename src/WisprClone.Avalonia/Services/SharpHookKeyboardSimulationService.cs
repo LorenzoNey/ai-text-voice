@@ -1,6 +1,7 @@
 using SharpHook;
 using SharpHook.Native;
 using WisprClone.Services.Interfaces;
+using System.IO;
 
 namespace WisprClone.Services;
 
@@ -26,11 +27,11 @@ public class SharpHookKeyboardSimulationService : IKeyboardSimulationService
     {
         try
         {
-            var delayMs = _settingsService.Current.PasteDelayMs;
+            Log("SimulatePasteAsync called");
 
-            // Wait before simulating paste to allow clipboard to be ready
-            // and give focus back to the target application
-            await Task.Delay(delayMs);
+            // Wait longer to ensure user has fully released the hotkey (Ctrl)
+            // and clipboard is ready
+            await Task.Delay(250);
 
             // Determine modifier key based on platform
             // macOS uses Cmd (Meta), Windows/Linux use Ctrl
@@ -38,24 +39,41 @@ public class SharpHookKeyboardSimulationService : IKeyboardSimulationService
                 ? KeyCode.VcLeftMeta
                 : KeyCode.VcLeftControl;
 
+            Log($"Simulating paste with modifier: {modifierKey}");
+
             // Simulate paste: Modifier down, V down, V up, Modifier up
-            _simulator.SimulateKeyPress(modifierKey);
-            await Task.Delay(10); // Small delay between key events
+            var result = _simulator.SimulateKeyPress(modifierKey);
+            Log($"Ctrl press result: {result}");
+            await Task.Delay(20); // Small delay between key events
 
-            _simulator.SimulateKeyPress(KeyCode.VcV);
-            await Task.Delay(10);
+            result = _simulator.SimulateKeyPress(KeyCode.VcV);
+            Log($"V press result: {result}");
+            await Task.Delay(20);
 
-            _simulator.SimulateKeyRelease(KeyCode.VcV);
-            await Task.Delay(10);
+            result = _simulator.SimulateKeyRelease(KeyCode.VcV);
+            Log($"V release result: {result}");
+            await Task.Delay(20);
 
-            _simulator.SimulateKeyRelease(modifierKey);
+            result = _simulator.SimulateKeyRelease(modifierKey);
+            Log($"Ctrl release result: {result}");
 
+            Log("SimulatePasteAsync completed");
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Log($"SimulatePasteAsync error: {ex.Message}");
             return false;
         }
+    }
+
+    private static void Log(string message)
+    {
+        var logPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            "wispr_log.txt");
+        var line = $"[{DateTime.Now:HH:mm:ss.fff}] [KeyboardSim] {message}";
+        try { File.AppendAllText(logPath, line + Environment.NewLine); } catch { }
     }
 
     public void Dispose()
