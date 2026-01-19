@@ -184,9 +184,17 @@ public partial class App : Application
             if (_overlayWindow != null)
             {
                 _overlayWindow.Show();
+
                 if (activate)
                 {
                     _overlayWindow.Activate();
+                }
+                else
+                {
+                    // Bring to foreground without stealing focus by toggling Topmost
+                    // This forces Windows to re-evaluate the Z-order
+                    _overlayWindow.Topmost = false;
+                    _overlayWindow.Topmost = true;
                 }
             }
         }
