@@ -88,6 +88,29 @@ jobs:
       - name: Install create-dmg
         run: brew install create-dmg
 
+      - name: Import Code Signing Certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Clean up
+          rm $RUNNER_TEMP/certificate.p12
+
       - name: Restore dependencies
         run: dotnet restore ${{ env.PROJECT_PATH }}
 
@@ -164,11 +187,30 @@ jobs:
           # Make executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
-          # Remove quarantine attribute to prevent "damaged" error on unsigned apps
-          xattr -cr ./publish/WisprClone.app
+      - name: Code Sign Application
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Find the Developer ID Application certificate
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "Using signing identity: $SIGNING_IDENTITY"
+
+          # Sign all binaries and dylibs in the app bundle
+          find ./publish/WisprClone.app -type f \( -name "*.dylib" -o -perm +111 \) -exec codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp {} \;
+
+          # Sign the main app bundle
+          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+
+          # Verify signature
+          codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
 
       - name: Create DMG
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          # Find signing identity for DMG
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
           create-dmg \
             --volname "WisprClone" \
             --window-pos 200 120 \
@@ -177,13 +219,31 @@ jobs:
             --icon "WisprClone.app" 150 190 \
             --hide-extension "WisprClone.app" \
             --app-drop-link 450 190 \
+            --codesign "$SIGNING_IDENTITY" \
             "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
             "./publish/WisprClone.app" || true
 
           # Fallback if create-dmg fails
           if [ ! -f "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
             hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
+            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Submit for notarization
+          xcrun notarytool submit "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
@@ -211,6 +271,29 @@ jobs:
 
       - name: Install create-dmg
         run: brew install create-dmg
+
+      - name: Import Code Signing Certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Clean up
+          rm $RUNNER_TEMP/certificate.p12
 
       - name: Restore dependencies
         run: dotnet restore ${{ env.PROJECT_PATH }}
@@ -288,11 +371,30 @@ jobs:
           # Make executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
-          # Remove quarantine attribute to prevent "damaged" error on unsigned apps
-          xattr -cr ./publish/WisprClone.app
+      - name: Code Sign Application
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Find the Developer ID Application certificate
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "Using signing identity: $SIGNING_IDENTITY"
+
+          # Sign all binaries and dylibs in the app bundle
+          find ./publish/WisprClone.app -type f \( -name "*.dylib" -o -perm +111 \) -exec codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp {} \;
+
+          # Sign the main app bundle
+          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+
+          # Verify signature
+          codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
 
       - name: Create DMG
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          # Find signing identity for DMG
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+
           create-dmg \
             --volname "WisprClone" \
             --window-pos 200 120 \
@@ -301,13 +403,31 @@ jobs:
             --icon "WisprClone.app" 150 190 \
             --hide-extension "WisprClone.app" \
             --app-drop-link 450 190 \
+            --codesign "$SIGNING_IDENTITY" \
             "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
             "./publish/WisprClone.app" || true
 
           # Fallback if create-dmg fails
           if [ ! -f "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
             hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
+            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Submit for notarization
+          xcrun notarytool submit "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
@@ -448,13 +568,9 @@ jobs:
             Download and run `WisprClone-Setup-${{ steps.version.outputs.VERSION }}.exe` for a full installation with Start Menu shortcuts and uninstaller.
 
             #### macOS
-            1. Download the `.dmg` file
+            1. Download the `.dmg` file for your Mac (Apple Silicon or Intel)
             2. Open the DMG and drag WisprClone to Applications
-            3. **Important**: If you see "WisprClone is damaged and can't be opened", run this command in Terminal:
-               ```
-               xattr -cr /Applications/WisprClone.app
-               ```
-            4. On first launch, grant Accessibility and Microphone permissions
+            3. On first launch, grant Accessibility and Microphone permissions
 
             #### Linux
             1. Download the `.AppImage` file
