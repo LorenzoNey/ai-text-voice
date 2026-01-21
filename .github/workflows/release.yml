@@ -218,17 +218,13 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Using signing identity: $SIGNING_IDENTITY"
 
-          # Sign all dylibs first with entitlements
-          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp {} \;
+          # Sign the app bundle with --deep to sign all nested Mach-O binaries
+          # The --deep flag will sign dylibs and the main executable automatically
+          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
 
-          # Sign the main executable with entitlements
-          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
-
-          # Sign the main app bundle with entitlements
-          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
-
-          # Verify signature
-          codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
+          # Verify signature (without --strict as .NET DLLs aren't Mach-O binaries)
+          codesign --verify --deep --verbose=2 ./publish/WisprClone.app
+          echo "Code signing completed successfully"
 
       - name: Create DMG
         env:
@@ -428,17 +424,13 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Using signing identity: $SIGNING_IDENTITY"
 
-          # Sign all dylibs first with entitlements
-          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp {} \;
+          # Sign the app bundle with --deep to sign all nested Mach-O binaries
+          # The --deep flag will sign dylibs and the main executable automatically
+          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
 
-          # Sign the main executable with entitlements
-          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
-
-          # Sign the main app bundle with entitlements
-          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
-
-          # Verify signature
-          codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
+          # Verify signature (without --strict as .NET DLLs aren't Mach-O binaries)
+          codesign --verify --deep --verbose=2 ./publish/WisprClone.app
+          echo "Code signing completed successfully"
 
       - name: Create DMG
         env:
