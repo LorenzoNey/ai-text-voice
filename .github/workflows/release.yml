@@ -165,6 +165,103 @@ jobs:
           path: WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg
           retention-days: 1
 
+  build-macos-intel-dmg:
+    runs-on: macos-13  # Intel-based runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish application
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r osx-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:Version=${{ steps.version.outputs.VERSION }} \
+            -o ./publish/WisprClone.app/Contents/MacOS
+
+      - name: Create app bundle structure
+        run: |
+          mkdir -p ./publish/WisprClone.app/Contents/Resources
+
+          # Create Info.plist
+          cat > ./publish/WisprClone.app/Contents/Info.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleName</key>
+              <string>WisprClone</string>
+              <key>CFBundleDisplayName</key>
+              <string>WisprClone</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.lorenzoneywisprclone</string>
+              <key>CFBundleVersion</key>
+              <string>${{ steps.version.outputs.VERSION }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ steps.version.outputs.VERSION }}</string>
+              <key>CFBundleExecutable</key>
+              <string>WisprClone</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>10.15</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+              <key>NSMicrophoneUsageDescription</key>
+              <string>WisprClone needs microphone access for speech recognition.</string>
+          </dict>
+          </plist>
+          EOF
+
+          # Make executable
+          chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
+
+      - name: Create DMG
+        run: |
+          create-dmg \
+            --volname "WisprClone" \
+            --volicon "src/WisprClone.Avalonia/Resources/Icons/app_icon.ico" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "WisprClone.app" 150 190 \
+            --hide-extension "WisprClone.app" \
+            --app-drop-link 450 190 \
+            "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
+            "./publish/WisprClone.app" || true
+
+          # Fallback if create-dmg fails (e.g., no icon)
+          if [ ! -f "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
+            hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
+          fi
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WisprClone-macOS-x64-DMG
+          path: WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg
+          retention-days: 1
+
   build-linux-appimage:
     runs-on: ubuntu-latest
 
@@ -245,7 +342,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [build-windows-installer, build-macos-dmg, build-linux-appimage]
+    needs: [build-windows-installer, build-macos-dmg, build-macos-intel-dmg, build-linux-appimage]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -287,7 +384,8 @@ jobs:
             | Platform | Architecture | Download |
             |----------|--------------|----------|
             | **Windows** | x64 | `WisprClone-Setup-${{ steps.version.outputs.VERSION }}.exe` |
-            | **macOS** | Apple Silicon | `WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg` |
+            | **macOS** | Apple Silicon (M1/M2/M3) | `WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg` |
+            | **macOS** | Intel | `WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg` |
             | **Linux** | x64 | `WisprClone-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage` |
 
             ### Installation
