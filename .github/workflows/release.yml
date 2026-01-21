@@ -166,7 +166,7 @@ jobs:
           retention-days: 1
 
   build-macos-intel-dmg:
-    runs-on: macos-13  # Intel-based runner
+    runs-on: macos-15-intel  # Intel-based runner
 
     steps:
       - name: Checkout code
