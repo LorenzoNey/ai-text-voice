@@ -68,6 +68,8 @@ public class SharpHookKeyboardHook : IGlobalKeyboardHook
             KeyCode.VcRightAlt => GlobalKeyCode.RightAlt,
             KeyCode.VcLeftShift => GlobalKeyCode.LeftShift,
             KeyCode.VcRightShift => GlobalKeyCode.RightShift,
+            KeyCode.VcLeftMeta => GlobalKeyCode.LeftMeta,   // Command on macOS
+            KeyCode.VcRightMeta => GlobalKeyCode.RightMeta, // Command on macOS
             KeyCode.VcSpace => GlobalKeyCode.Space,
             KeyCode.VcEnter => GlobalKeyCode.Enter,
             KeyCode.VcEscape => GlobalKeyCode.Escape,

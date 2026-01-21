@@ -111,10 +111,12 @@ public class DoubleKeyTapDetector : IDisposable
 
     private bool IsTargetKey(GlobalKeyCode key)
     {
-        // Handle both left and right Ctrl
+        // Handle both left and right Ctrl (Windows/Linux) and Meta/Command (macOS)
         return key == _targetKey ||
                key == GlobalKeyCode.LeftCtrl ||
-               key == GlobalKeyCode.RightCtrl;
+               key == GlobalKeyCode.RightCtrl ||
+               key == GlobalKeyCode.LeftMeta ||
+               key == GlobalKeyCode.RightMeta;
     }
 
     public void Dispose()

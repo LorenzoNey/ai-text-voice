@@ -61,6 +61,8 @@ public enum GlobalKeyCode
     RightAlt,
     LeftShift,
     RightShift,
+    LeftMeta,  // Command key on macOS, Windows key on Windows
+    RightMeta, // Command key on macOS, Windows key on Windows
     Space,
     Enter,
     Escape,
