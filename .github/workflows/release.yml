@@ -114,14 +114,32 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore ${{ env.PROJECT_PATH }}
 
+      - name: Create entitlements file
+        run: |
+          cat > entitlements.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.allow-jit</key>
+              <true/>
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+              <key>com.apple.security.device.audio-input</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
       - name: Publish application
         run: |
           dotnet publish ${{ env.PROJECT_PATH }} \
             -c Release \
             -r osx-arm64 \
             --self-contained true \
-            -p:PublishSingleFile=true \
-            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PublishSingleFile=false \
             -p:DebugType=none \
             -p:DebugSymbols=false \
             -p:Version=${{ steps.version.outputs.VERSION }} \
@@ -200,14 +218,14 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Using signing identity: $SIGNING_IDENTITY"
 
-          # Sign all dylibs first
-          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp {} \;
+          # Sign all dylibs first with entitlements
+          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp {} \;
 
-          # Sign the main executable
-          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
+          # Sign the main executable with entitlements
+          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
-          # Sign the main app bundle
-          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+          # Sign the main app bundle with entitlements
+          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
 
           # Verify signature
           codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
@@ -306,14 +324,32 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore ${{ env.PROJECT_PATH }}
 
+      - name: Create entitlements file
+        run: |
+          cat > entitlements.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.allow-jit</key>
+              <true/>
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+              <key>com.apple.security.device.audio-input</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
       - name: Publish application
         run: |
           dotnet publish ${{ env.PROJECT_PATH }} \
             -c Release \
             -r osx-x64 \
             --self-contained true \
-            -p:PublishSingleFile=true \
-            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PublishSingleFile=false \
             -p:DebugType=none \
             -p:DebugSymbols=false \
             -p:Version=${{ steps.version.outputs.VERSION }} \
@@ -392,14 +428,14 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "Using signing identity: $SIGNING_IDENTITY"
 
-          # Sign all dylibs first
-          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp {} \;
+          # Sign all dylibs first with entitlements
+          find ./publish/WisprClone.app -name "*.dylib" -exec codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp {} \;
 
-          # Sign the main executable
-          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
+          # Sign the main executable with entitlements
+          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
-          # Sign the main app bundle
-          codesign --force --options runtime --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+          # Sign the main app bundle with entitlements
+          codesign --force --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
 
           # Verify signature
           codesign --verify --deep --strict --verbose=2 ./publish/WisprClone.app
