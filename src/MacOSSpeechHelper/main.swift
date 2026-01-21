@@ -93,10 +93,7 @@ class SpeechRecognitionManager {
         recognitionTask?.cancel()
         recognitionTask = nil
 
-        // Configure audio session
-        let audioSession = AVAudioSession.sharedInstance()
-        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        // Note: AVAudioSession is iOS-only. On macOS, AVAudioEngine handles audio directly.
 
         // Create recognition request
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
@@ -167,9 +164,6 @@ class SpeechRecognitionManager {
         // Cancel task
         recognitionTask?.cancel()
         recognitionTask = nil
-
-        // Deactivate audio session
-        try? AVAudioSession.sharedInstance().setActive(false)
 
         sendState("idle")
 
