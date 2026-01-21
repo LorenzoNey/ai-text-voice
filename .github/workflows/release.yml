@@ -102,9 +102,32 @@ jobs:
             -p:Version=${{ steps.version.outputs.VERSION }} \
             -o ./publish/WisprClone.app/Contents/MacOS
 
+      - name: Create app icon (icns)
+        run: |
+          # Create iconset directory
+          mkdir -p AppIcon.iconset
+
+          # Use the 256px icon as source and create required sizes
+          sips -z 16 16     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
+          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
+          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
+          sips -z 64 64     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
+          sips -z 128 128   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
+          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
+          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
+
+          # Convert to icns
+          iconutil -c icns AppIcon.iconset -o AppIcon.icns
+
       - name: Create app bundle structure
         run: |
           mkdir -p ./publish/WisprClone.app/Contents/Resources
+
+          # Copy app icon
+          cp AppIcon.icns ./publish/WisprClone.app/Contents/Resources/AppIcon.icns
 
           # Create Info.plist
           cat > ./publish/WisprClone.app/Contents/Info.plist << EOF
@@ -126,6 +149,8 @@ jobs:
               <string>WisprClone</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>LSMinimumSystemVersion</key>
               <string>10.15</string>
               <key>NSHighResolutionCapable</key>
@@ -139,11 +164,13 @@ jobs:
           # Make executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
+          # Remove quarantine attribute to prevent "damaged" error on unsigned apps
+          xattr -cr ./publish/WisprClone.app
+
       - name: Create DMG
         run: |
           create-dmg \
             --volname "WisprClone" \
-            --volicon "src/WisprClone.Avalonia/Resources/Icons/app_icon.ico" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
@@ -153,7 +180,7 @@ jobs:
             "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
             "./publish/WisprClone.app" || true
 
-          # Fallback if create-dmg fails (e.g., no icon)
+          # Fallback if create-dmg fails
           if [ ! -f "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
             hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
@@ -199,9 +226,32 @@ jobs:
             -p:Version=${{ steps.version.outputs.VERSION }} \
             -o ./publish/WisprClone.app/Contents/MacOS
 
+      - name: Create app icon (icns)
+        run: |
+          # Create iconset directory
+          mkdir -p AppIcon.iconset
+
+          # Use the 256px icon as source and create required sizes
+          sips -z 16 16     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
+          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
+          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
+          sips -z 64 64     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
+          sips -z 128 128   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
+          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
+          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
+          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
+
+          # Convert to icns
+          iconutil -c icns AppIcon.iconset -o AppIcon.icns
+
       - name: Create app bundle structure
         run: |
           mkdir -p ./publish/WisprClone.app/Contents/Resources
+
+          # Copy app icon
+          cp AppIcon.icns ./publish/WisprClone.app/Contents/Resources/AppIcon.icns
 
           # Create Info.plist
           cat > ./publish/WisprClone.app/Contents/Info.plist << EOF
@@ -223,6 +273,8 @@ jobs:
               <string>WisprClone</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>LSMinimumSystemVersion</key>
               <string>10.15</string>
               <key>NSHighResolutionCapable</key>
@@ -236,11 +288,13 @@ jobs:
           # Make executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
 
+          # Remove quarantine attribute to prevent "damaged" error on unsigned apps
+          xattr -cr ./publish/WisprClone.app
+
       - name: Create DMG
         run: |
           create-dmg \
             --volname "WisprClone" \
-            --volicon "src/WisprClone.Avalonia/Resources/Icons/app_icon.ico" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
@@ -250,7 +304,7 @@ jobs:
             "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
             "./publish/WisprClone.app" || true
 
-          # Fallback if create-dmg fails (e.g., no icon)
+          # Fallback if create-dmg fails
           if [ ! -f "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
             hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
@@ -396,7 +450,11 @@ jobs:
             #### macOS
             1. Download the `.dmg` file
             2. Open the DMG and drag WisprClone to Applications
-            3. On first launch, grant Accessibility and Microphone permissions
+            3. **Important**: If you see "WisprClone is damaged and can't be opened", run this command in Terminal:
+               ```
+               xattr -cr /Applications/WisprClone.app
+               ```
+            4. On first launch, grant Accessibility and Microphone permissions
 
             #### Linux
             1. Download the `.AppImage` file
