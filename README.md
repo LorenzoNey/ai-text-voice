@@ -205,6 +205,56 @@ The GitHub Actions workflow will automatically:
 
 Pre-release tags will create pre-release GitHub releases.
 
+### Setting Up Apple Code Signing Secrets
+
+macOS releases require Apple code signing. The repository includes `apple-secrets.txt` as a template showing the required secrets.
+
+#### Required Secrets
+
+| Secret Name | Description |
+|-------------|-------------|
+| `APPLE_CERTIFICATE_BASE64` | Base64-encoded .p12 certificate file |
+| `APPLE_CERTIFICATE_PASSWORD` | Password for the .p12 certificate |
+| `APPLE_TEAM_ID` | Your Apple Developer Team ID |
+| `APPLE_ID` | Apple ID email for notarization |
+| `APPLE_ID_PASSWORD` | App-specific password for notarization |
+
+#### For Individual Repositories
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each secret from the table above with its corresponding value
+5. Repeat for all five secrets
+
+#### For Organization-Wide Access
+
+If you have multiple repositories that need the same Apple signing credentials:
+
+1. Go to your GitHub organization page
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New organization secret**
+4. Add each secret from the table above
+5. Under "Repository access", choose:
+   - **All repositories** - for all repos in the org
+   - **Private repositories** - for private repos only
+   - **Selected repositories** - to pick specific repos
+6. Click **Add secret**
+
+#### Generating the Base64 Certificate
+
+To convert your .p12 certificate to base64:
+
+```bash
+# macOS/Linux
+base64 -i certificate.p12 | tr -d '\n' > certificate-base64.txt
+
+# Windows (PowerShell)
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificate.p12")) | Out-File certificate-base64.txt -NoNewline
+```
+
+Copy the contents of `certificate-base64.txt` as the value for `APPLE_CERTIFICATE_BASE64`.
+
 ## Project Structure
 
 ```
