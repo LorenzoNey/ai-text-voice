@@ -281,24 +281,23 @@ public partial class SettingsWindow : Window
 
                 if (OperatingSystem.IsMacOS())
                 {
-                    // macOS: Show install button for automated update
-                    DownloadStatusText.Text = "Download complete! Click Install to quit and update.";
-                    DownloadUpdateButton.Content = "Install Update";
-                    DownloadUpdateButton.IsEnabled = true;
-                    DownloadUpdateButton.Click -= DownloadUpdateButton_Click;
-                    DownloadUpdateButton.Click += (_, _) =>
+                    // macOS: Immediately install after download (consolidated flow)
+                    DownloadStatusText.Text = "Installing update... The app will restart.";
+
+                    // Small delay to show the message before quitting
+                    await Task.Delay(500);
+
+                    _updateService.LaunchMacOSUpdate(filePath, () =>
                     {
-                        DownloadUpdateButton.IsEnabled = false;
-                        DownloadStatusText.Text = "Installing... The app will restart.";
-                        _updateService.LaunchMacOSUpdate(filePath, () =>
+                        // Quit the application on UI thread
+                        Dispatcher.UIThread.Post(() =>
                         {
-                            // Quit the application
                             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                             {
                                 lifetime.Shutdown();
                             }
                         });
-                    };
+                    });
                 }
                 else
                 {

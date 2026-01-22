@@ -296,54 +296,87 @@ public class UpdateService : IUpdateService
 
             // Create updater script
             var scriptPath = Path.Combine(Path.GetTempPath(), "wispr-update.sh");
+            var logPath = Path.Combine(Path.GetTempPath(), "wispr-update.log");
             var script = $@"#!/bin/bash
 # WisprClone macOS Updater
-# Wait for app to quit
-while kill -0 {currentPid} 2>/dev/null; do sleep 0.5; done
+exec > ""{logPath}"" 2>&1
+
+echo ""Waiting for app (PID {currentPid}) to quit...""
+
+# Wait for app to quit (max 30 seconds)
+WAIT_COUNT=0
+while kill -0 {currentPid} 2>/dev/null; do
+    sleep 0.5
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $WAIT_COUNT -gt 60 ]; then
+        echo ""Timeout waiting for app to quit""
+        exit 1
+    fi
+done
+
+echo ""App quit, mounting DMG...""
 
 # Mount DMG silently
-MOUNT_OUTPUT=$(hdiutil attach ""{dmgPath}"" -nobrowse -quiet 2>&1)
-MOUNT_POINT=$(echo ""$MOUNT_OUTPUT"" | grep -o '/Volumes/[^""]*' | head -1)
+MOUNT_OUTPUT=$(hdiutil attach ""{dmgPath}"" -nobrowse 2>&1)
+echo ""Mount output: $MOUNT_OUTPUT""
+
+# Find the mount point
+MOUNT_POINT=$(echo ""$MOUNT_OUTPUT"" | grep -o '/Volumes/[^""]*' | tail -1)
 if [ -z ""$MOUNT_POINT"" ]; then
-    MOUNT_POINT=""/Volumes/WisprClone""
+    # Try common name
+    if [ -d ""/Volumes/WisprClone"" ]; then
+        MOUNT_POINT=""/Volumes/WisprClone""
+    fi
 fi
 
-# Wait for mount
-sleep 1
+echo ""Mount point: $MOUNT_POINT""
+
+# Wait for mount to be ready
+sleep 2
 
 # Copy app to Applications (overwrite existing)
 if [ -d ""$MOUNT_POINT/WisprClone.app"" ]; then
+    echo ""Copying app to Applications...""
     rm -rf ""{appPath}""
     cp -R ""$MOUNT_POINT/WisprClone.app"" ""/Applications/""
+    echo ""Copy complete""
+else
+    echo ""ERROR: WisprClone.app not found in $MOUNT_POINT""
+    ls -la ""$MOUNT_POINT"" 2>&1 || echo ""Cannot list mount point""
 fi
 
 # Unmount DMG
+echo ""Unmounting DMG...""
 hdiutil detach ""$MOUNT_POINT"" -quiet 2>/dev/null
 
-# Clean up DMG
+# Clean up DMG and script
 rm -f ""{dmgPath}""
+rm -f ""{scriptPath}""
 
 # Relaunch app
+echo ""Relaunching app...""
 open ""{appPath}""
+
+echo ""Update complete""
 ";
 
             File.WriteAllText(scriptPath, script);
+            Log($"Update script written to: {scriptPath}");
 
-            // Make executable
-            Process.Start("chmod", $"+x \"{scriptPath}\"")?.WaitForExit();
-
-            // Launch script in background
-            Process.Start(new ProcessStartInfo
+            // Make executable and launch in one command using nohup for proper detachment
+            var launchProcess = Process.Start(new ProcessStartInfo
             {
                 FileName = "/bin/bash",
-                Arguments = $"\"{scriptPath}\"",
+                Arguments = $"-c \"chmod +x '{scriptPath}' && nohup '{scriptPath}' &\"",
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             });
 
-            Log($"macOS update script launched: {scriptPath}");
+            Log($"macOS update script launched, log at: {logPath}");
 
-            // Notify caller to quit
+            // Notify caller to quit - this must happen for the script to proceed
             onBeforeQuit?.Invoke();
         }
         catch (Exception ex)
