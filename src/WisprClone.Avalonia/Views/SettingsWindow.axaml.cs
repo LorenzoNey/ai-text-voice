@@ -1,6 +1,4 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using WisprClone.Core;
@@ -289,14 +287,9 @@ public partial class SettingsWindow : Window
 
                     _updateService.LaunchMacOSUpdate(filePath, () =>
                     {
-                        // Quit the application on UI thread
-                        Dispatcher.UIThread.Post(() =>
-                        {
-                            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-                            {
-                                lifetime.Shutdown();
-                            }
-                        });
+                        // Force exit immediately - graceful shutdown can hang waiting for threads
+                        // The update script is waiting for our PID to exit, so we must exit quickly
+                        Environment.Exit(0);
                     });
                 }
                 else
