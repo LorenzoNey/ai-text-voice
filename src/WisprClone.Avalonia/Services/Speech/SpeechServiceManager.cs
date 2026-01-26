@@ -15,6 +15,8 @@ public class SpeechServiceManager : ISpeechRecognitionService
     private readonly OpenAIWhisperSpeechRecognitionService _whisperService;
     private readonly OpenAIRealtimeSpeechRecognitionService _realtimeService;
     private readonly HybridSpeechRecognitionService _hybridService;
+    private readonly FasterWhisperSpeechRecognitionService _fasterWhisperService;
+    private readonly WhisperServerSpeechRecognitionService _whisperServerService;
     private readonly ISettingsService _settingsService;
 
     private ISpeechRecognitionService _activeService;
@@ -32,12 +34,29 @@ public class SpeechServiceManager : ISpeechRecognitionService
     public bool IsAvailable => _activeService.IsAvailable;
     public string CurrentLanguage => _currentLanguage;
 
+    /// <summary>
+    /// Gets the actual active provider (may differ from settings if fallback occurred).
+    /// </summary>
+    public SpeechProvider ActiveProvider => GetProviderForService(_activeService);
+
+    private SpeechProvider GetProviderForService(ISpeechRecognitionService service)
+    {
+        if (service == _azureService) return SpeechProvider.Azure;
+        if (service == _whisperService) return SpeechProvider.OpenAI;
+        if (service == _realtimeService) return SpeechProvider.OpenAIRealtime;
+        if (service == _fasterWhisperService) return SpeechProvider.FasterWhisper;
+        if (service == _whisperServerService) return SpeechProvider.WhisperServer;
+        return SpeechProvider.Offline; // Hybrid/Offline
+    }
+
     public SpeechServiceManager(
         OfflineSpeechRecognitionService offlineService,
         AzureSpeechRecognitionService azureService,
         OpenAIWhisperSpeechRecognitionService whisperService,
         OpenAIRealtimeSpeechRecognitionService realtimeService,
         HybridSpeechRecognitionService hybridService,
+        FasterWhisperSpeechRecognitionService fasterWhisperService,
+        WhisperServerSpeechRecognitionService whisperServerService,
         ISettingsService settingsService)
     {
         _offlineService = offlineService;
@@ -45,6 +64,8 @@ public class SpeechServiceManager : ISpeechRecognitionService
         _whisperService = whisperService;
         _realtimeService = realtimeService;
         _hybridService = hybridService;
+        _fasterWhisperService = fasterWhisperService;
+        _whisperServerService = whisperServerService;
         _settingsService = settingsService;
 
         _activeService = GetServiceForProvider(settingsService.Current.SpeechProvider);
@@ -54,6 +75,8 @@ public class SpeechServiceManager : ISpeechRecognitionService
         WireEvents(_whisperService);
         WireEvents(_realtimeService);
         WireEvents(_hybridService);
+        WireEvents(_fasterWhisperService);
+        WireEvents(_whisperServerService);
 
         _settingsService.SettingsChanged += OnSettingsChanged;
     }
@@ -68,13 +91,23 @@ public class SpeechServiceManager : ISpeechRecognitionService
 
     private ISpeechRecognitionService GetServiceForProvider(SpeechProvider provider)
     {
-        return provider switch
+        ISpeechRecognitionService service = provider switch
         {
             SpeechProvider.Azure => _azureService,
             SpeechProvider.OpenAI => _whisperService,
             SpeechProvider.OpenAIRealtime => _realtimeService,
+            SpeechProvider.FasterWhisper => _fasterWhisperService,
+            SpeechProvider.WhisperServer => _whisperServerService,
             _ => _hybridService // Offline uses Hybrid for fallback support
         };
+
+        // If the selected provider isn't available, fall back to offline/hybrid
+        if (!service.IsAvailable && provider != SpeechProvider.Offline)
+        {
+            return _hybridService;
+        }
+
+        return service;
     }
 
     private async void OnSettingsChanged(object? sender, AppSettings settings)
@@ -167,6 +200,11 @@ public class SpeechServiceManager : ISpeechRecognitionService
         _azureService.Dispose();
         _whisperService.Dispose();
         _realtimeService.Dispose();
+        _fasterWhisperService.Dispose();
+        _whisperServerService.Dispose();
+
+        // Stop the whisper server process on app shutdown
+        WhisperServerSpeechRecognitionService.StopServer();
     }
 }
 #endif

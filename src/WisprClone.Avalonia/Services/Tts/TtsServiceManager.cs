@@ -13,6 +13,7 @@ public class TtsServiceManager : ITextToSpeechService
     private readonly OfflineTextToSpeechService _offlineService;
     private readonly AzureTextToSpeechService _azureService;
     private readonly OpenAITextToSpeechService _openaiService;
+    private readonly PiperTextToSpeechService _piperService;
     private readonly ISettingsService _settingsService;
 
     private ITextToSpeechService _activeService;
@@ -33,15 +34,30 @@ public class TtsServiceManager : ITextToSpeechService
     public bool IsAvailable => _activeService.IsAvailable;
     public bool SupportsPause => _activeService.SupportsPause;
 
+    /// <summary>
+    /// Gets the actual active provider (may differ from settings if fallback occurred).
+    /// </summary>
+    public TtsProvider ActiveProvider => GetProviderForService(_activeService);
+
+    private TtsProvider GetProviderForService(ITextToSpeechService service)
+    {
+        if (service == _azureService) return TtsProvider.Azure;
+        if (service == _openaiService) return TtsProvider.OpenAI;
+        if (service == _piperService) return TtsProvider.Piper;
+        return TtsProvider.Offline;
+    }
+
     public TtsServiceManager(
         OfflineTextToSpeechService offlineService,
         AzureTextToSpeechService azureService,
         OpenAITextToSpeechService openaiService,
+        PiperTextToSpeechService piperService,
         ISettingsService settingsService)
     {
         _offlineService = offlineService;
         _azureService = azureService;
         _openaiService = openaiService;
+        _piperService = piperService;
         _settingsService = settingsService;
 
         // Configure cloud services with API keys from settings
@@ -52,6 +68,7 @@ public class TtsServiceManager : ITextToSpeechService
         WireEvents(_offlineService);
         WireEvents(_azureService);
         WireEvents(_openaiService);
+        WireEvents(_piperService);
 
         _settingsService.SettingsChanged += OnSettingsChanged;
     }
@@ -83,13 +100,22 @@ public class TtsServiceManager : ITextToSpeechService
 
     private ITextToSpeechService GetServiceForProvider(TtsProvider provider)
     {
-        return provider switch
+        ITextToSpeechService service = provider switch
         {
             TtsProvider.Offline => _offlineService,
             TtsProvider.Azure => _azureService,
             TtsProvider.OpenAI => _openaiService,
+            TtsProvider.Piper => _piperService,
             _ => _offlineService // Default to offline
         };
+
+        // If the selected provider isn't available, fall back to offline
+        if (!service.IsAvailable && provider != TtsProvider.Offline)
+        {
+            return _offlineService;
+        }
+
+        return service;
     }
 
     private async void OnSettingsChanged(object? sender, AppSettings settings)
@@ -157,6 +183,7 @@ public class TtsServiceManager : ITextToSpeechService
         {
             TtsProvider.Azure => settings.AzureTtsVoice,
             TtsProvider.OpenAI => settings.OpenAITtsVoice,
+            TtsProvider.Piper => settings.PiperVoicePath,
             _ => settings.TtsVoice
         };
     }
@@ -238,6 +265,7 @@ public class TtsServiceManager : ITextToSpeechService
         _offlineService.Dispose();
         _azureService.Dispose();
         _openaiService.Dispose();
+        _piperService.Dispose();
     }
 }
 #endif

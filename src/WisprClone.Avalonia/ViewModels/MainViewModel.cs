@@ -133,7 +133,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         Log("Both hotkey detectors started");
 
         // Create overlay view model
-        _overlayViewModel = new OverlayViewModel(_speechService, _ttsService, _settingsService);
+        _overlayViewModel = new OverlayViewModel(_speechService, _ttsService, _settingsService, _loggingService);
         _overlayViewModel.HideRequested += OnOverlayHideRequested;
         _overlayViewModel.TtsPauseResumeRequested += OnTtsPauseResumeRequested;
         _overlayViewModel.TtsStopRequested += OnTtsStopRequested;
@@ -617,21 +617,15 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async void OnRecognitionPartial(object? sender, TranscriptionEventArgs e)
+    private void OnRecognitionPartial(object? sender, TranscriptionEventArgs e)
     {
-        // Update clipboard when a segment is finalized (not interim hypotheses)
-        if (e.IsSegmentFinalized && _settingsService.Current.AutoCopyToClipboard && !string.IsNullOrWhiteSpace(e.Text))
-        {
-            await _clipboardService.SetTextAsync(e.Text);
-        }
+        // Partial results are displayed in the overlay via OverlayViewModel binding
+        // Clipboard is only updated at the END of transcription in StopTranscriptionAsync
     }
 
-    private async void OnRecognitionCompleted(object? sender, TranscriptionEventArgs e)
+    private void OnRecognitionCompleted(object? sender, TranscriptionEventArgs e)
     {
-        if (e.IsFinal && _settingsService.Current.AutoCopyToClipboard && !string.IsNullOrWhiteSpace(e.Text))
-        {
-            await _clipboardService.SetTextAsync(e.Text);
-        }
+        // Final result handling and clipboard copy happens in StopTranscriptionAsync
     }
 
     private bool TryTransitionState(TranscriptionState expectedCurrent, TranscriptionState newState)

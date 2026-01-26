@@ -58,6 +58,7 @@ public partial class OverlayViewModel : ViewModelBase
     private readonly ISpeechRecognitionService _speechService;
     private readonly ITextToSpeechService _ttsService;
     private readonly ISettingsService _settingsService;
+    private readonly ILoggingService _loggingService;
     private readonly AudioLevelMonitor _audioMonitor;
     private readonly DispatcherTimer _elapsedTimer;
     private readonly DispatcherTimer _temporaryMessageTimer;
@@ -231,11 +232,12 @@ public partial class OverlayViewModel : ViewModelBase
         _ => "Ctrl+Ctrl to toggle"
     };
 
-    public OverlayViewModel(ISpeechRecognitionService speechService, ITextToSpeechService ttsService, ISettingsService settingsService)
+    public OverlayViewModel(ISpeechRecognitionService speechService, ITextToSpeechService ttsService, ISettingsService settingsService, ILoggingService loggingService)
     {
         _speechService = speechService;
         _ttsService = ttsService;
         _settingsService = settingsService;
+        _loggingService = loggingService;
         _audioMonitor = new AudioLevelMonitor();
 
         // Initialize elapsed time timer
@@ -268,52 +270,39 @@ public partial class OverlayViewModel : ViewModelBase
             new() { Code = "ja-JP", DisplayName = "Japanese" }
         };
 
-        // Initialize provider options - dynamically based on platform
+        // Initialize provider options using centralized helper
         var providerOptions = new ObservableCollection<ProviderOption>();
-
-        // Add platform-specific local speech option first
-        if (OperatingSystem.IsWindows())
+        foreach (var (provider, _, shortName) in ProviderHelper.GetAvailableSpeechProviders())
         {
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.Offline, DisplayName = "Local (Windows)" });
+            providerOptions.Add(new ProviderOption { Provider = provider, DisplayName = shortName });
         }
-        else if (OperatingSystem.IsMacOS())
-        {
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.MacOSNative, DisplayName = "Local (macOS)" });
-        }
-
-        // Add cloud providers (available on all platforms)
-        providerOptions.Add(new ProviderOption { Provider = SpeechProvider.Azure, DisplayName = "Azure" });
-        providerOptions.Add(new ProviderOption { Provider = SpeechProvider.OpenAI, DisplayName = "OpenAI" });
-
         AvailableProviders = providerOptions;
 
-        // Initialize TTS provider options - dynamically based on platform
+        // Initialize TTS provider options using centralized helper
         var ttsProviderOptions = new ObservableCollection<TtsProviderOption>();
-
-        if (OperatingSystem.IsWindows())
+        foreach (var (provider, _, shortName) in ProviderHelper.GetAvailableTtsProviders())
         {
-            ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.Offline, DisplayName = "Local (Windows)" });
+            ttsProviderOptions.Add(new TtsProviderOption { Provider = provider, DisplayName = shortName });
         }
-        else if (OperatingSystem.IsMacOS())
-        {
-            ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.MacOSNative, DisplayName = "Local (macOS)" });
-        }
-
-        ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.Azure, DisplayName = "Azure" });
-        ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.OpenAI, DisplayName = "OpenAI" });
-
         AvailableTtsProviders = ttsProviderOptions;
 
-        // Set initial selections based on current settings
+        // Set initial selections based on actual active provider (may differ from settings if fallback occurred)
         SelectedLanguage = AvailableLanguages.FirstOrDefault(l => l.Code == settingsService.Current.RecognitionLanguage)
                            ?? AvailableLanguages.First();
-        SelectedProvider = AvailableProviders.FirstOrDefault(p => p.Provider == settingsService.Current.SpeechProvider)
+
+        // Use active provider from service manager if available (handles fallback case)
+        var activeSpeechProvider = (speechService as Services.Speech.SpeechServiceManager)?.ActiveProvider
+                                   ?? settingsService.Current.SpeechProvider;
+        var activeTtsProvider = (ttsService as Services.Tts.TtsServiceManager)?.ActiveProvider
+                                ?? settingsService.Current.TtsProvider;
+
+        SelectedProvider = AvailableProviders.FirstOrDefault(p => p.Provider == activeSpeechProvider)
                            ?? AvailableProviders.First();
-        SelectedTtsProvider = AvailableTtsProviders.FirstOrDefault(p => p.Provider == settingsService.Current.TtsProvider)
+        SelectedTtsProvider = AvailableTtsProviders.FirstOrDefault(p => p.Provider == activeTtsProvider)
                               ?? AvailableTtsProviders.First();
 
-        // Initialize TTS voices based on selected provider
-        UpdateTtsVoicesForProvider(settingsService.Current.TtsProvider);
+        // Initialize TTS voices based on active provider
+        UpdateTtsVoicesForProvider(activeTtsProvider);
 
         // Subscribe to speech service events
         _speechService.RecognitionPartial += OnRecognitionPartial;
@@ -384,6 +373,9 @@ public partial class OverlayViewModel : ViewModelBase
             case TtsProvider.Azure:
                 _settingsService.Update(s => s.AzureTtsVoice = value.VoiceId);
                 break;
+            case TtsProvider.Piper:
+                _settingsService.Update(s => s.PiperVoicePath = value.VoiceId);
+                break;
             case TtsProvider.Offline:
             case TtsProvider.MacOSNative:
                 _settingsService.Update(s => s.TtsVoice = value.VoiceId);
@@ -423,6 +415,11 @@ public partial class OverlayViewModel : ViewModelBase
                                    ?? AvailableTtsVoices.First();
                 break;
 
+            case TtsProvider.Piper:
+                // Load installed Piper voices from disk
+                LoadPiperVoices();
+                break;
+
             case TtsProvider.Offline:
             case TtsProvider.MacOSNative:
             default:
@@ -431,6 +428,45 @@ public partial class OverlayViewModel : ViewModelBase
                 SelectedTtsVoice = AvailableTtsVoices.First();
                 break;
         }
+    }
+
+    /// <summary>
+    /// Loads installed Piper voices from the voices directory.
+    /// </summary>
+    private void LoadPiperVoices()
+    {
+        var voicesDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "piper", "voices");
+
+        if (System.IO.Directory.Exists(voicesDir))
+        {
+            var onnxFiles = System.IO.Directory.GetFiles(voicesDir, "*.onnx")
+                .Where(f => !f.EndsWith(".onnx.json"))
+                .ToList();
+
+            foreach (var file in onnxFiles)
+            {
+                var fileName = System.IO.Path.GetFileNameWithoutExtension(file);
+                var relativePath = $"voices/{System.IO.Path.GetFileName(file)}";
+
+                // Parse voice name: en_US-amy-medium -> Language: en_US, Name: amy, Quality: medium
+                var parts = fileName.Split('-');
+                var name = parts.Length > 1 ? parts[1] : fileName;
+                var quality = parts.Length > 2 ? parts[2] : "medium";
+                var displayName = $"{char.ToUpper(name[0])}{name[1..]} ({quality})";
+
+                AvailableTtsVoices.Add(new TtsVoiceOption { VoiceId = relativePath, DisplayName = displayName });
+            }
+        }
+
+        // Add default if no voices found
+        if (AvailableTtsVoices.Count == 0)
+        {
+            AvailableTtsVoices.Add(new TtsVoiceOption { VoiceId = "voices/en_US-amy-medium.onnx", DisplayName = "Amy (medium) - Not Installed" });
+        }
+
+        // Select current voice or first available
+        SelectedTtsVoice = AvailableTtsVoices.FirstOrDefault(v => v.VoiceId == _settingsService.Current.PiperVoicePath)
+                           ?? AvailableTtsVoices.First();
     }
 
     private void OnSettingsChangedExternally(object? sender, Models.AppSettings settings)
@@ -508,10 +544,17 @@ public partial class OverlayViewModel : ViewModelBase
 
     private void OnRecognitionPartial(object? sender, TranscriptionEventArgs e)
     {
-        DispatchToUI(() =>
+        var preview = e.Text?.Length > 50 ? e.Text.Substring(0, 50) + "..." : e.Text ?? "";
+        _loggingService.Log("OverlayVM", $"OnRecognitionPartial received: '{preview}' (length={e.Text?.Length ?? 0})");
+
+        // Use InvokeAsync with high priority for immediate UI update
+        Dispatcher.UIThread.InvokeAsync(() =>
         {
-            TranscriptionText = string.IsNullOrEmpty(e.Text) ? "Listening..." : e.Text;
-        });
+            var newText = string.IsNullOrEmpty(e.Text) ? "Listening..." : e.Text;
+            var uiPreview = newText.Length > 50 ? newText.Substring(0, 50) + "..." : newText;
+            _loggingService.Log("OverlayVM", $"Setting TranscriptionText on UI thread: '{uiPreview}'");
+            TranscriptionText = newText;
+        }, DispatcherPriority.Send); // Highest priority for immediate update
     }
 
     private void OnRecognitionCompleted(object? sender, TranscriptionEventArgs e)

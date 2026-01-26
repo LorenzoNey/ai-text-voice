@@ -158,6 +158,18 @@ jobs:
           # Make it executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper
 
+      - name: Build Swift Audio Helper
+        run: |
+          # Compile the audio capture helper for arm64
+          swiftc -O -target arm64-apple-macos11.0 \
+            -o ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper \
+            -framework AVFoundation \
+            -framework Foundation \
+            src/MacOSAudioHelper/main.swift
+
+          # Make it executable
+          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper
+
       - name: Create app icon (icns)
         run: |
           # Create iconset directory
@@ -375,6 +387,18 @@ jobs:
 
           # Make it executable
           chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper
+
+      - name: Build Swift Audio Helper
+        run: |
+          # Compile the audio capture helper for x64
+          swiftc -O -target x86_64-apple-macos11.0 \
+            -o ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper \
+            -framework AVFoundation \
+            -framework Foundation \
+            src/MacOSAudioHelper/main.swift
+
+          # Make it executable
+          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper
 
       - name: Create app icon (icns)
         run: |
