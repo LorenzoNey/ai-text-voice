@@ -576,6 +576,10 @@ public partial class App : Application
 
         try
         {
+            // Stop whisper server to free GPU memory
+            Log("Stopping Whisper Server...");
+            WhisperServerSpeechRecognitionService.StopServer();
+
             // Dispose update service
             _updateService?.Dispose();
 
@@ -612,6 +616,10 @@ public partial class App : Application
         {
             try
             {
+                // Stop whisper server to free GPU memory
+                Log("ForceCleanupAndExit: Stopping Whisper Server...");
+                WhisperServerSpeechRecognitionService.StopServer();
+
                 Log("ForceCleanupAndExit: Disposing update service...");
                 _updateService?.Dispose();
 
@@ -725,7 +733,7 @@ public partial class App : Application
             if (settings?.Current.TtsProvider != Core.TtsProvider.Piper)
                 return;
 
-            var piperExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "piper", "piper.exe");
+            var piperExePath = Path.Combine(DownloadHelper.GetDataDirectory(), "piper", "piper.exe");
             if (!File.Exists(piperExePath))
             {
                 Log("Piper TTS not installed, skipping model check");
@@ -736,7 +744,7 @@ public partial class App : Application
             var voicePath = settings.Current.PiperVoicePath;
             if (!Path.IsPathRooted(voicePath))
             {
-                voicePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "piper", voicePath);
+                voicePath = Path.Combine(DownloadHelper.GetDataDirectory(), "piper", voicePath);
             }
 
             if (File.Exists(voicePath))
@@ -749,7 +757,7 @@ public partial class App : Application
 
             // Try to download the default voice
             var downloadHelper = new DownloadHelper(_loggingService);
-            var voicesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "piper", "voices");
+            var voicesDir = Path.Combine(DownloadHelper.GetDataDirectory(), "piper", "voices");
             Directory.CreateDirectory(voicesDir);
 
             var defaultVoicePath = Path.Combine(voicesDir, "en_US-amy-medium.onnx");
@@ -787,7 +795,7 @@ public partial class App : Application
             if (settings?.Current.SpeechProvider != Core.SpeechProvider.WhisperServer)
                 return;
 
-            var serverExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "whisper-server", "whisper-server.exe");
+            var serverExePath = Path.Combine(DownloadHelper.GetDataDirectory(), "whisper-server", DownloadHelper.GetWhisperServerExecutableName());
             if (!File.Exists(serverExePath))
             {
                 Log("Whisper Server not installed, skipping model check");
@@ -797,7 +805,7 @@ public partial class App : Application
             // Check if the configured model exists
             var modelName = settings.Current.WhisperCppModel;
             var modelFileName = $"ggml-{modelName}.bin";
-            var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "whisper-server", "models", modelFileName);
+            var modelPath = Path.Combine(DownloadHelper.GetDataDirectory(), "whisper-server", "models", modelFileName);
 
             if (File.Exists(modelPath))
             {
@@ -807,7 +815,7 @@ public partial class App : Application
 
             Log($"Whisper Server model not found: {modelFileName}. Attempting to download...");
 
-            var modelsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "whisper-server", "models");
+            var modelsDir = Path.Combine(DownloadHelper.GetDataDirectory(), "whisper-server", "models");
             Directory.CreateDirectory(modelsDir);
 
             // Try to download the configured model first
