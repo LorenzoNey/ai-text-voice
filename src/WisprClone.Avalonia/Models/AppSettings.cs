@@ -74,7 +74,7 @@ public class AppSettings
     public bool MinimizeToTray { get; set; } = true;
 
     // Behavior Settings
-    public bool AutoCopyToClipboard { get; set; } = true;
+    public bool AutoCopyToClipboard { get; set; } = false;
     public bool AutoPasteAfterCopy { get; set; } = true;
     public int PasteDelayMs { get; set; } = 100;
     public bool PlaySoundOnStart { get; set; } = false;
