@@ -33,6 +33,7 @@ public partial class SettingsWindow : Window
         UpdateTtsSettingsPanelVisibility();
         SetupTtsSliderEvents();
         SetupFasterWhisperEvents();
+        SetupWhisperStreamingEvents();
         PopulatePiperVoices();
     }
 
@@ -113,6 +114,12 @@ public partial class SettingsWindow : Window
         // Whisper Server settings
         SelectComboBoxItemByTag(WhisperServerModelComboBox, settings.WhisperCppModel);
         WhisperServerPortTextBox.Text = settings.WhisperCppServerPort.ToString();
+
+        // Whisper Server streaming settings
+        WhisperStreamingEnabledCheckBox.IsChecked = settings.WhisperStreamingEnabled;
+        WhisperWindowSlider.Value = settings.WhisperStreamingWindowSeconds;
+        WhisperWindowValueText.Text = $"{settings.WhisperStreamingWindowSeconds} seconds";
+        UpdateWhisperStreamingPanelVisibility();
     }
 
     private void LoadUpdateStatus()
@@ -298,6 +305,10 @@ public partial class SettingsWindow : Window
             {
                 settings.WhisperCppServerPort = Math.Clamp(serverPort, 1024, 65535);
             }
+
+            // Whisper Server streaming settings
+            settings.WhisperStreamingEnabled = WhisperStreamingEnabledCheckBox.IsChecked ?? true;
+            settings.WhisperStreamingWindowSeconds = (int)WhisperWindowSlider.Value;
         });
 
         Close();
@@ -523,6 +534,27 @@ public partial class SettingsWindow : Window
         {
             UpdateFasterWhisperGpuPanelVisibility();
         };
+    }
+
+    private void SetupWhisperStreamingEvents()
+    {
+        WhisperStreamingEnabledCheckBox.IsCheckedChanged += (s, e) =>
+        {
+            UpdateWhisperStreamingPanelVisibility();
+        };
+
+        WhisperWindowSlider.PropertyChanged += (s, e) =>
+        {
+            if (e.Property.Name == "Value")
+            {
+                WhisperWindowValueText.Text = $"{(int)WhisperWindowSlider.Value} seconds";
+            }
+        };
+    }
+
+    private void UpdateWhisperStreamingPanelVisibility()
+    {
+        WhisperStreamingSettingsPanel.IsVisible = WhisperStreamingEnabledCheckBox.IsChecked == true;
     }
 
     private async void DownloadFasterWhisperButton_Click(object? sender, RoutedEventArgs e)

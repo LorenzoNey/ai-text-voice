@@ -307,6 +307,12 @@
 
                                     <TextBlock Text="Re-transcribes every 2 seconds for pseudo-streaming. Requires faster-whisper-xxl."
                                                Classes="info"/>
+                                    <TextBlock Text="Note: The first transcription will be slow as the model downloads automatically (~3-5 GB depending on model size)."
+                                               Foreground="#FFFFCC00"
+                                               FontSize="11"
+                                               FontStyle="Italic"
+                                               TextWrapping="Wrap"
+                                               Margin="0,8,0,0"/>
                                 </StackPanel>
 
                                 <!-- Whisper Server Settings Panel (conditional) -->
@@ -389,6 +395,38 @@
                                     <StackPanel Classes="inputRow" Margin="0,12,0,0">
                                         <TextBlock Text="Server Port" Classes="inlineLabel" Width="100"/>
                                         <TextBox x:Name="WhisperServerPortTextBox" Classes="settings" Width="80" Text="8178"/>
+                                    </StackPanel>
+
+                                    <!-- Streaming Settings -->
+                                    <Border Height="1" Background="#FF333333" Margin="0,16,0,12"/>
+
+                                    <CheckBox x:Name="WhisperStreamingEnabledCheckBox"
+                                              Content="Enable real-time streaming (shows text while speaking)"
+                                              Classes="settings"
+                                              IsChecked="True"
+                                              Margin="0"/>
+
+                                    <StackPanel x:Name="WhisperStreamingSettingsPanel" Margin="20,8,0,0">
+                                        <StackPanel Classes="inputRow" Margin="0">
+                                            <TextBlock Text="Window size" Classes="inlineLabel" Width="100"/>
+                                            <Slider x:Name="WhisperWindowSlider"
+                                                    Width="150"
+                                                    Minimum="5"
+                                                    Maximum="15"
+                                                    Value="8"
+                                                    TickFrequency="1"
+                                                    IsSnapToTickEnabled="True"
+                                                    VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="WhisperWindowValueText"
+                                                       Text="8 seconds"
+                                                       Classes="inlineLabel"
+                                                       Width="70"
+                                                       Margin="8,0,0,0"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="Smaller = faster updates, larger = more context for accuracy"
+                                                   Classes="info"
+                                                   Margin="0,4,0,0"/>
                                     </StackPanel>
 
                                     <TextBlock Text="Keeps model loaded in GPU memory for instant (~1 second) transcription. The server starts automatically when needed."

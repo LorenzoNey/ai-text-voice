@@ -54,6 +54,11 @@ public class AppSettings
     public string WhisperCppModel { get; set; } = "base.en"; // ggml model name
     public int WhisperCppServerPort { get; set; } = 8178;
 
+    // Whisper Server Streaming Settings
+    public bool WhisperStreamingEnabled { get; set; } = true;       // Toggle streaming mode
+    public int WhisperStreamingWindowSeconds { get; set; } = 8;     // Sliding window size
+    public int WhisperStreamingIntervalMs { get; set; } = 1500;     // Transcription interval
+
     // Piper TTS Settings
     public string PiperVoicePath { get; set; } = "voices/en_US-amy-medium.onnx";
 

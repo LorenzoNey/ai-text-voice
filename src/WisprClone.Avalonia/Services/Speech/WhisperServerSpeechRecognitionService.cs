@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Timers;
 using WisprClone.Core;
 using WisprClone.Models;
 using WisprClone.Services.Interfaces;
@@ -31,6 +32,12 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     private readonly object _audioLock = new();
     private bool _disposed;
     private bool _isRecording;
+
+    // Sliding window streaming
+    private System.Timers.Timer? _streamingTimer;
+    private readonly List<TranscribedWord> _confirmedWords = new();
+    private double _lastConfirmedTimestamp = 0;
+    private long _recordingStartTime;  // When recording started (milliseconds since epoch)
 
     private static Process? _serverProcess;
     private static readonly object _serverLock = new();
@@ -245,6 +252,11 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
         {
             UpdateState(RecognitionState.Initializing);
 
+            // Initialize streaming state
+            _recordingStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            _confirmedWords.Clear();
+            _lastConfirmedTimestamp = 0;
+
             lock (_audioLock)
             {
                 _fullAudioStream = new MemoryStream();
@@ -263,6 +275,17 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
 
             _waveIn.StartRecording();
             _isRecording = true;
+
+            // Start streaming timer if enabled
+            var settings = _settingsService.Current;
+            if (settings.WhisperStreamingEnabled)
+            {
+                _streamingTimer = new System.Timers.Timer(settings.WhisperStreamingIntervalMs);
+                _streamingTimer.Elapsed += OnStreamingTimerElapsed;
+                _streamingTimer.AutoReset = true;
+                _streamingTimer.Start();
+                Log($"Streaming enabled: window={settings.WhisperStreamingWindowSeconds}s, interval={settings.WhisperStreamingIntervalMs}ms");
+            }
 
             UpdateState(RecognitionState.Listening);
             RecognitionPartial?.Invoke(this, new TranscriptionEventArgs("Listening...", false, false));
@@ -287,6 +310,16 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     {
 #if WINDOWS
         Log("StopRecognitionAsync called");
+
+        // Stop streaming timer first
+        if (_streamingTimer != null)
+        {
+            _streamingTimer.Stop();
+            _streamingTimer.Elapsed -= OnStreamingTimerElapsed;
+            _streamingTimer.Dispose();
+            _streamingTimer = null;
+            Log("Streaming timer stopped");
+        }
 
         if (!_isRecording || _waveIn == null)
         {
@@ -318,14 +351,18 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
 
             if (audioData != null && audioData.Length > 16000) // At least ~0.5 seconds
             {
-                Log("Sending to whisper server...");
+                Log("Sending to whisper server for final transcription...");
                 transcription = await TranscribeViaServerAsync(audioData);
-                Log($"Transcription: '{transcription}'");
+                Log($"Final transcription: '{transcription}'");
             }
             else
             {
                 Log($"Audio too short: {audioData?.Length ?? 0} bytes");
             }
+
+            // Clear streaming state
+            _confirmedWords.Clear();
+            _lastConfirmedTimestamp = 0;
 
             RecognitionCompleted?.Invoke(this, new TranscriptionEventArgs(transcription, true));
             UpdateState(RecognitionState.Idle);
@@ -463,6 +500,321 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
                 $"Recording error: {e.Exception.Message}", e.Exception));
         }
     }
+
+    /// <summary>
+    /// Timer handler for streaming transcription using sliding window approach.
+    /// </summary>
+    private async void OnStreamingTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (!_isRecording || _fullAudioStream == null) return;
+
+        try
+        {
+            var windowSeconds = _settingsService.Current.WhisperStreamingWindowSeconds;
+            var (audioData, pcmData) = ExtractLastNSecondsWithPcm(windowSeconds);
+
+            if (audioData == null || pcmData == null || audioData.Length < 8000) // Too short (~0.25s at 16kHz 16-bit mono)
+            {
+                return;
+            }
+
+            // Check if audio is silent - skip processing if so
+            if (IsAudioSilent(pcmData))
+            {
+                Log("Streaming: skipping silent audio");
+                return;
+            }
+
+            // Calculate time offset of this window
+            var totalRecordedSeconds = GetTotalRecordedSeconds();
+            var windowStartTime = Math.Max(0, totalRecordedSeconds - windowSeconds);
+
+            Log($"Streaming: transcribing {windowSeconds}s window starting at {windowStartTime:F1}s");
+
+            // Transcribe with word timestamps
+            var words = await TranscribeWithTimestampsAsync(audioData, windowStartTime);
+
+            if (words.Count > 0)
+            {
+                // Merge with confirmed words
+                MergeWords(words, windowStartTime);
+
+                // Emit partial result
+                var currentText = string.Join(" ", _confirmedWords.Select(w => w.Text));
+                if (!string.IsNullOrEmpty(currentText))
+                {
+                    RecognitionPartial?.Invoke(this, new TranscriptionEventArgs(currentText, false, false));
+                    Log($"Streaming partial: {_confirmedWords.Count} words, last timestamp: {_lastConfirmedTimestamp:F2}s");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Streaming error: {ex.Message}");
+            // Don't throw - just skip this cycle
+        }
+    }
+
+    /// <summary>
+    /// Checks if audio data is silent by calculating RMS and comparing to threshold.
+    /// </summary>
+    private bool IsAudioSilent(byte[] pcmData, double silenceThreshold = 500)
+    {
+        if (pcmData.Length < 2) return true;
+
+        // PCM 16-bit: 2 bytes per sample, little-endian
+        double sumSquares = 0;
+        int sampleCount = pcmData.Length / 2;
+
+        for (int i = 0; i < pcmData.Length - 1; i += 2)
+        {
+            short sample = (short)(pcmData[i] | (pcmData[i + 1] << 8));
+            sumSquares += sample * sample;
+        }
+
+        double rms = Math.Sqrt(sumSquares / sampleCount);
+
+        // Threshold: ~500 is very quiet (max is 32767 for 16-bit audio)
+        return rms < silenceThreshold;
+    }
+
+    /// <summary>
+    /// Extracts the last N seconds of audio from the recording buffer.
+    /// Returns both WAV data (for transcription) and raw PCM data (for silence detection).
+    /// </summary>
+    private (byte[]? wavData, byte[]? pcmData) ExtractLastNSecondsWithPcm(int seconds)
+    {
+        lock (_audioLock)
+        {
+            if (_fullAudioStream == null || _fullAudioWriter == null) return (null, null);
+
+            _fullAudioWriter.Flush();
+
+            // Audio format: 16kHz, 16-bit, mono = 32000 bytes per second
+            var bytesPerSecond = 16000 * 2;
+            var windowBytes = seconds * bytesPerSecond;
+
+            // Save current position
+            var totalBytes = _fullAudioStream.Position;
+
+            byte[] pcmBuffer;
+            if (totalBytes < windowBytes)
+            {
+                // Return all audio if less than window
+                _fullAudioStream.Position = 0;
+                pcmBuffer = new byte[totalBytes];
+                _fullAudioStream.Read(pcmBuffer, 0, (int)totalBytes);
+                _fullAudioStream.Position = totalBytes; // Reset to end
+            }
+            else
+            {
+                // Extract last N seconds
+                var startPosition = totalBytes - windowBytes;
+                _fullAudioStream.Position = startPosition;
+                pcmBuffer = new byte[windowBytes];
+                _fullAudioStream.Read(pcmBuffer, 0, windowBytes);
+                _fullAudioStream.Position = totalBytes; // Reset to end
+            }
+
+            return (CreateWavFromPcm(pcmBuffer), pcmBuffer);
+        }
+    }
+
+    /// <summary>
+    /// Gets the total recorded time in seconds.
+    /// </summary>
+    private double GetTotalRecordedSeconds()
+    {
+        lock (_audioLock)
+        {
+            if (_fullAudioStream == null) return 0;
+
+            // Audio format: 16kHz, 16-bit, mono = 32000 bytes per second
+            var bytesPerSecond = 16000 * 2;
+            return _fullAudioStream.Position / (double)bytesPerSecond;
+        }
+    }
+
+    /// <summary>
+    /// Creates a WAV file from raw PCM data.
+    /// </summary>
+    private byte[] CreateWavFromPcm(byte[] pcmData)
+    {
+        using var ms = new MemoryStream();
+        using var writer = new WaveFileWriter(ms, new WaveFormat(16000, 16, 1));
+        writer.Write(pcmData, 0, pcmData.Length);
+        writer.Flush();
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Transcribes audio with word-level timestamps using verbose_json format.
+    /// </summary>
+    private async Task<List<TranscribedWord>> TranscribeWithTimestampsAsync(byte[] audioData, double windowStartTime)
+    {
+        await EnsureServerRunningAsync();
+
+        var settings = _settingsService.Current;
+        var url = $"http://127.0.0.1:{_serverPort}/inference";
+
+        using var content = new MultipartFormDataContent();
+
+        // Add audio file
+        var audioContent = new ByteArrayContent(audioData);
+        audioContent.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        content.Add(audioContent, "file", "audio.wav");
+
+        // Request verbose_json for word-level timestamps
+        content.Add(new StringContent("verbose_json"), "response_format");
+
+        var language = settings.FasterWhisperLanguage;
+        if (string.IsNullOrEmpty(language) || language.ToLower() == "auto")
+            language = "en";
+        content.Add(new StringContent(language), "language");
+
+        var response = await _httpClient.PostAsync(url, content);
+        response.EnsureSuccessStatusCode();
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        return ParseWordsWithTimestamps(responseText, windowStartTime);
+    }
+
+    /// <summary>
+    /// Parses word-level timestamps from verbose_json response.
+    /// </summary>
+    private List<TranscribedWord> ParseWordsWithTimestamps(string json, double windowStartTime)
+    {
+        var words = new List<TranscribedWord>();
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            // verbose_json format has "segments" with "words" array
+            if (root.TryGetProperty("segments", out var segments))
+            {
+                foreach (var segment in segments.EnumerateArray())
+                {
+                    if (segment.TryGetProperty("words", out var wordsArray))
+                    {
+                        foreach (var word in wordsArray.EnumerateArray())
+                        {
+                            var text = word.TryGetProperty("word", out var wordProp)
+                                ? wordProp.GetString()?.Trim()
+                                : null;
+                            var start = word.TryGetProperty("start", out var startProp)
+                                ? startProp.GetDouble()
+                                : 0;
+                            var end = word.TryGetProperty("end", out var endProp)
+                                ? endProp.GetDouble()
+                                : 0;
+
+                            if (!string.IsNullOrEmpty(text))
+                            {
+                                words.Add(new TranscribedWord
+                                {
+                                    Text = text,
+                                    StartTime = windowStartTime + start,  // Convert to absolute time
+                                    EndTime = windowStartTime + end
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Fallback: if no word-level timestamps, use segment text with segment timestamps
+                        var segText = segment.TryGetProperty("text", out var textProp)
+                            ? textProp.GetString()?.Trim()
+                            : null;
+                        var segStart = segment.TryGetProperty("start", out var segStartProp)
+                            ? segStartProp.GetDouble()
+                            : 0;
+                        var segEnd = segment.TryGetProperty("end", out var segEndProp)
+                            ? segEndProp.GetDouble()
+                            : 0;
+
+                        if (!string.IsNullOrEmpty(segText))
+                        {
+                            // Split segment text into words and distribute timestamps
+                            var segWords = segText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                            var duration = segEnd - segStart;
+                            var wordDuration = segWords.Length > 0 ? duration / segWords.Length : duration;
+
+                            for (int i = 0; i < segWords.Length; i++)
+                            {
+                                words.Add(new TranscribedWord
+                                {
+                                    Text = segWords[i],
+                                    StartTime = windowStartTime + segStart + (i * wordDuration),
+                                    EndTime = windowStartTime + segStart + ((i + 1) * wordDuration)
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            else if (root.TryGetProperty("text", out var textProp))
+            {
+                // Simple format without timestamps - treat as single block
+                var text = textProp.GetString()?.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    var simpleWords = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var estimatedDuration = simpleWords.Length * 0.3; // Rough estimate: 0.3s per word
+                    for (int i = 0; i < simpleWords.Length; i++)
+                    {
+                        words.Add(new TranscribedWord
+                        {
+                            Text = simpleWords[i],
+                            StartTime = windowStartTime + (i * 0.3),
+                            EndTime = windowStartTime + ((i + 1) * 0.3)
+                        });
+                    }
+                }
+            }
+        }
+        catch (JsonException ex)
+        {
+            Log($"Failed to parse word timestamps: {ex.Message}");
+        }
+
+        return words;
+    }
+
+    /// <summary>
+    /// Merges new words with confirmed words using timestamp-based alignment.
+    /// </summary>
+    private void MergeWords(List<TranscribedWord> newWords, double windowStartTime)
+    {
+        if (newWords.Count == 0) return;
+
+        // Find where new words start after our last confirmed timestamp
+        // Add small overlap tolerance (0.3 seconds) to handle boundary cases
+        var overlapTolerance = 0.3;
+        var cutoffTime = _lastConfirmedTimestamp - overlapTolerance;
+
+        foreach (var word in newWords)
+        {
+            // Only add words that start after our last confirmed position
+            if (word.StartTime >= cutoffTime)
+            {
+                // Check for duplicates (same word at approximately same time)
+                var isDuplicate = _confirmedWords.Any(w =>
+                    w.Text.Equals(word.Text, StringComparison.OrdinalIgnoreCase) &&
+                    Math.Abs(w.StartTime - word.StartTime) < 0.5);
+
+                if (!isDuplicate)
+                {
+                    _confirmedWords.Add(word);
+                    _lastConfirmedTimestamp = Math.Max(_lastConfirmedTimestamp, word.EndTime);
+                }
+            }
+        }
+
+        // Sort by timestamp (in case of out-of-order additions)
+        _confirmedWords.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+    }
 #endif
 
     private void CleanupRecording()
@@ -535,6 +887,15 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
         if (_disposed)
             return;
 
+        // Stop streaming timer
+        if (_streamingTimer != null)
+        {
+            _streamingTimer.Stop();
+            _streamingTimer.Elapsed -= OnStreamingTimerElapsed;
+            _streamingTimer.Dispose();
+            _streamingTimer = null;
+        }
+
         if (_isRecording)
         {
 #if WINDOWS
@@ -556,6 +917,16 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     ~WhisperServerSpeechRecognitionService()
     {
         Dispose();
+    }
+
+    /// <summary>
+    /// Represents a transcribed word with timestamp information for merging.
+    /// </summary>
+    private class TranscribedWord
+    {
+        public string Text { get; set; } = "";
+        public double StartTime { get; set; }  // Absolute time from recording start (seconds)
+        public double EndTime { get; set; }
     }
 
 #if WINDOWS
