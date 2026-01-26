@@ -41,7 +41,7 @@ public class AppSettings
     public string AzureTtsVoice { get; set; } = "en-US-JennyNeural";
 
     // Faster-Whisper-XXL STT Settings
-    public string FasterWhisperModel { get; set; } = "large-v3-turbo";
+    public string FasterWhisperModel { get; set; } = "base";
     public string FasterWhisperLanguage { get; set; } = "auto";
     public bool FasterWhisperUseGpu { get; set; } = true;
     public int FasterWhisperDeviceId { get; set; } = 0;
