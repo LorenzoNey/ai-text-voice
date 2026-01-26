@@ -261,13 +261,13 @@
                                         <ComboBoxItem Content="base" Tag="base"/>
                                         <ComboBoxItem Content="small" Tag="small"/>
                                         <ComboBoxItem Content="medium" Tag="medium"/>
-                                        <ComboBoxItem Content="large-v3-turbo" Tag="large-v3-turbo" IsSelected="True"/>
+                                        <ComboBoxItem Content="large-v3-turbo" Tag="large-v3-turbo" />
                                         <ComboBoxItem Content="large-v3" Tag="large-v3"/>
                                     </ComboBox>
 
                                     <TextBlock Text="Language" Classes="label" Margin="0,12,0,6"/>
                                     <ComboBox x:Name="FasterWhisperLanguageComboBox" Classes="settings" Width="200" HorizontalAlignment="Left">
-                                        <ComboBoxItem Content="Auto-detect" Tag="auto" IsSelected="True"/>
+                                        <ComboBoxItem Content="Auto-detect" Tag="auto" />
                                         <ComboBoxItem Content="English" Tag="en"/>
                                         <ComboBoxItem Content="Romanian" Tag="ro"/>
                                         <ComboBoxItem Content="Spanish" Tag="es"/>
@@ -293,7 +293,7 @@
 
                                         <TextBlock Text="Compute Type" Classes="label" Margin="0,12,0,6"/>
                                         <ComboBox x:Name="FasterWhisperComputeTypeComboBox" Classes="settings" Width="150" HorizontalAlignment="Left">
-                                            <ComboBoxItem Content="float16" Tag="float16" IsSelected="True"/>
+                                            <ComboBoxItem Content="float16" Tag="float16" />
                                             <ComboBoxItem Content="float32" Tag="float32"/>
                                             <ComboBoxItem Content="int8" Tag="int8"/>
                                             <ComboBoxItem Content="int8_float16" Tag="int8_float16"/>
@@ -344,14 +344,47 @@
                                     </StackPanel>
 
                                     <TextBlock Text="Model" Classes="label"/>
-                                    <ComboBox x:Name="WhisperServerModelComboBox" Classes="settings" Width="200" HorizontalAlignment="Left">
-                                        <ComboBoxItem Content="tiny.en (fast)" Tag="tiny.en"/>
-                                        <ComboBoxItem Content="base.en" Tag="base.en" IsSelected="True"/>
-                                        <ComboBoxItem Content="small.en" Tag="small.en"/>
-                                        <ComboBoxItem Content="medium.en" Tag="medium.en"/>
-                                        <ComboBoxItem Content="large-v3" Tag="large-v3"/>
-                                        <ComboBoxItem Content="large-v3-turbo" Tag="large-v3-turbo"/>
+                                    <ComboBox x:Name="WhisperServerModelComboBox"
+                                              Classes="settings"
+                                              Width="220"
+                                              HorizontalAlignment="Left"
+                                              SelectionChanged="WhisperServerModelComboBox_SelectionChanged">
+                                        <ComboBoxItem Content="tiny.en (~75 MB)" Tag="tiny.en"/>
+                                        <ComboBoxItem Content="base.en (~142 MB)" Tag="base.en" />
+                                        <ComboBoxItem Content="small.en (~466 MB)" Tag="small.en"/>
+                                        <ComboBoxItem Content="medium.en (~1.5 GB)" Tag="medium.en"/>
+                                        <ComboBoxItem Content="large-v3 (~3 GB)" Tag="large-v3"/>
+                                        <ComboBoxItem Content="large-v3-turbo (~1.6 GB)" Tag="large-v3-turbo"/>
                                     </ComboBox>
+
+                                    <StackPanel x:Name="WhisperServerModelDownloadPanel" Margin="0,8,0,0">
+                                        <TextBlock x:Name="WhisperServerModelStatusText"
+                                                   Text="Model not downloaded"
+                                                   Foreground="#FFFF6B6B"
+                                                   FontSize="11"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <Button x:Name="DownloadWhisperModelButton"
+                                                    Content="Download Model"
+                                                    Classes="primary"
+                                                    Click="DownloadWhisperModelButton_Click"
+                                                    Padding="12,6"/>
+                                            <TextBlock x:Name="WhisperModelDownloadStatus"
+                                                       Text=""
+                                                       Foreground="#FF808080"
+                                                       FontSize="11"
+                                                       VerticalAlignment="Center"
+                                                       Margin="12,0,0,0"/>
+                                        </StackPanel>
+                                        <ProgressBar x:Name="WhisperModelDownloadProgress"
+                                                     IsVisible="False"
+                                                     Value="0"
+                                                     Minimum="0"
+                                                     Maximum="100"
+                                                     Height="4"
+                                                     Margin="0,8,0,0"
+                                                     Background="#FF404040"
+                                                     Foreground="#FF3391FF"/>
+                                    </StackPanel>
 
                                     <StackPanel Classes="inputRow" Margin="0,12,0,0">
                                         <TextBlock Text="Server Port" Classes="inlineLabel" Width="100"/>
@@ -427,7 +460,7 @@
 
                                     <TextBlock Text="OpenAI TTS Voice" Classes="label"/>
                                     <ComboBox x:Name="OpenAITtsVoiceComboBox" Classes="settings" Width="180" HorizontalAlignment="Left">
-                                        <ComboBoxItem Content="Alloy" Tag="alloy" IsSelected="True"/>
+                                        <ComboBoxItem Content="Alloy" Tag="alloy" />
                                         <ComboBoxItem Content="Echo" Tag="echo"/>
                                         <ComboBoxItem Content="Fable" Tag="fable"/>
                                         <ComboBoxItem Content="Onyx" Tag="onyx"/>
@@ -437,7 +470,7 @@
 
                                     <TextBlock Text="Model" Classes="label" Margin="0,12,0,6"/>
                                     <ComboBox x:Name="OpenAITtsModelComboBox" Classes="settings" Width="180" HorizontalAlignment="Left">
-                                        <ComboBoxItem Content="TTS-1 (Standard)" Tag="tts-1" IsSelected="True"/>
+                                        <ComboBoxItem Content="TTS-1 (Standard)" Tag="tts-1" />
                                         <ComboBoxItem Content="TTS-1-HD (High Quality)" Tag="tts-1-hd"/>
                                     </ComboBox>
 
@@ -451,7 +484,7 @@
 
                                     <TextBlock Text="Azure TTS Voice" Classes="label"/>
                                     <ComboBox x:Name="AzureTtsVoiceComboBox" Classes="settings" Width="250" HorizontalAlignment="Left">
-                                        <ComboBoxItem Content="Jenny (US)" Tag="en-US-JennyNeural" IsSelected="True"/>
+                                        <ComboBoxItem Content="Jenny (US)" Tag="en-US-JennyNeural" />
                                         <ComboBoxItem Content="Guy (US)" Tag="en-US-GuyNeural"/>
                                         <ComboBoxItem Content="Aria (US)" Tag="en-US-AriaNeural"/>
                                         <ComboBoxItem Content="Davis (US)" Tag="en-US-DavisNeural"/>
@@ -513,7 +546,7 @@
                                                   Classes="settings"
                                                   Width="150"
                                                   SelectionChanged="PiperLanguageFilterComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="English" Tag="en" IsSelected="True"/>
+                                            <ComboBoxItem Content="English" Tag="en" />
                                             <ComboBoxItem Content="German" Tag="de"/>
                                             <ComboBoxItem Content="Spanish" Tag="es"/>
                                             <ComboBoxItem Content="French" Tag="fr"/>
@@ -577,7 +610,7 @@
 
                                 <TextBlock Text="Recognition Language" Classes="label"/>
                                 <ComboBox x:Name="LanguageComboBox" Classes="settings" Width="250" HorizontalAlignment="Left">
-                                    <ComboBoxItem Content="English (US)" Tag="en-US" IsSelected="True"/>
+                                    <ComboBoxItem Content="English (US)" Tag="en-US" />
                                     <ComboBoxItem Content="English (UK)" Tag="en-GB"/>
                                     <ComboBoxItem Content="Romanian" Tag="ro-RO"/>
                                     <ComboBoxItem Content="Spanish" Tag="es-ES"/>

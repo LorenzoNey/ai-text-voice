@@ -268,46 +268,20 @@ public partial class OverlayViewModel : ViewModelBase
             new() { Code = "ja-JP", DisplayName = "Japanese" }
         };
 
-        // Initialize provider options - dynamically based on platform
+        // Initialize provider options using centralized helper
         var providerOptions = new ObservableCollection<ProviderOption>();
-
-        // Add platform-specific local speech option first
-        if (OperatingSystem.IsWindows())
+        foreach (var (provider, _, shortName) in ProviderHelper.GetAvailableSpeechProviders())
         {
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.Offline, DisplayName = "Local (Windows)" });
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.FasterWhisper, DisplayName = "Faster-Whisper (Offline)" });
+            providerOptions.Add(new ProviderOption { Provider = provider, DisplayName = shortName });
         }
-        else if (OperatingSystem.IsMacOS())
-        {
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.MacOSNative, DisplayName = "Local (macOS)" });
-        }
-
-        // Add cloud providers (available on all platforms)
-        providerOptions.Add(new ProviderOption { Provider = SpeechProvider.Azure, DisplayName = "Azure" });
-        providerOptions.Add(new ProviderOption { Provider = SpeechProvider.OpenAI, DisplayName = "OpenAI Whisper" });
-        if (OperatingSystem.IsWindows())
-        {
-            providerOptions.Add(new ProviderOption { Provider = SpeechProvider.OpenAIRealtime, DisplayName = "OpenAI Realtime" });
-        }
-
         AvailableProviders = providerOptions;
 
-        // Initialize TTS provider options - dynamically based on platform
+        // Initialize TTS provider options using centralized helper
         var ttsProviderOptions = new ObservableCollection<TtsProviderOption>();
-
-        if (OperatingSystem.IsWindows())
+        foreach (var (provider, _, shortName) in ProviderHelper.GetAvailableTtsProviders())
         {
-            ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.Offline, DisplayName = "Local (Windows)" });
-            ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.Piper, DisplayName = "Piper (Offline)" });
+            ttsProviderOptions.Add(new TtsProviderOption { Provider = provider, DisplayName = shortName });
         }
-        else if (OperatingSystem.IsMacOS())
-        {
-            ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.MacOSNative, DisplayName = "Local (macOS)" });
-        }
-
-        ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.Azure, DisplayName = "Azure" });
-        ttsProviderOptions.Add(new TtsProviderOption { Provider = TtsProvider.OpenAI, DisplayName = "OpenAI" });
-
         AvailableTtsProviders = ttsProviderOptions;
 
         // Set initial selections based on current settings

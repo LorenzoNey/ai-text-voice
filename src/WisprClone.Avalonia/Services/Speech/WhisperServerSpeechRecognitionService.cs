@@ -36,6 +36,7 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     private static readonly object _serverLock = new();
     private static bool _serverStarted;
     private static int _serverPort = 8178;
+    private static string? _currentLoadedModel;
 
     public event EventHandler<TranscriptionEventArgs>? RecognitionPartial;
     public event EventHandler<TranscriptionEventArgs>? RecognitionCompleted;
@@ -98,22 +99,34 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     /// <summary>
     /// Starts the whisper.cpp server if not already running.
     /// The server keeps the model loaded in memory for fast inference.
+    /// Will restart the server if the model has changed.
     /// </summary>
     public async Task EnsureServerRunningAsync()
     {
 #if WINDOWS
+        var settings = _settingsService.Current;
+        var requestedModel = settings.WhisperCppModel;
+
         lock (_serverLock)
         {
             if (_serverStarted && _serverProcess != null && !_serverProcess.HasExited)
             {
-                Log("Server already running");
-                return;
+                // Check if model has changed - if so, need to restart
+                if (_currentLoadedModel == requestedModel)
+                {
+                    Log("Server already running with correct model");
+                    return;
+                }
+                else
+                {
+                    Log($"Model changed from '{_currentLoadedModel}' to '{requestedModel}', restarting server...");
+                    StopServerInternal();
+                }
             }
         }
 
         var serverExe = GetServerExePath();
         var modelPath = GetModelPath();
-        var settings = _settingsService.Current;
         _serverPort = settings.WhisperCppServerPort;
 
         if (!File.Exists(serverExe))
@@ -178,7 +191,8 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
                 _serverProcess.BeginErrorReadLine();
 
                 _serverStarted = true;
-                Log($"Server started with PID: {_serverProcess.Id}");
+                _currentLoadedModel = requestedModel;
+                Log($"Server started with PID: {_serverProcess.Id}, model: {requestedModel}");
             }
             catch (Exception ex)
             {
@@ -493,17 +507,27 @@ public class WhisperServerSpeechRecognitionService : ISpeechRecognitionService
     {
         lock (_serverLock)
         {
-            if (_serverProcess != null && !_serverProcess.HasExited)
-            {
-                try
-                {
-                    _serverProcess.Kill();
-                }
-                catch { }
-            }
-            _serverProcess = null;
-            _serverStarted = false;
+            StopServerInternal();
         }
+    }
+
+    /// <summary>
+    /// Internal method to stop the server. Must be called within _serverLock.
+    /// </summary>
+    private static void StopServerInternal()
+    {
+        if (_serverProcess != null && !_serverProcess.HasExited)
+        {
+            try
+            {
+                _serverProcess.Kill();
+                _serverProcess.WaitForExit(3000); // Wait up to 3 seconds for clean exit
+            }
+            catch { }
+        }
+        _serverProcess = null;
+        _serverStarted = false;
+        _currentLoadedModel = null;
     }
 
     public void Dispose()

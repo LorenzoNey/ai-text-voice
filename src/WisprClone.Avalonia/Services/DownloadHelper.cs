@@ -378,6 +378,71 @@ public class DownloadHelper
     }
 
     /// <summary>
+    /// Downloads a specific whisper model for whisper.cpp server.
+    /// </summary>
+    public async Task DownloadWhisperModelAsync(string modelName, IProgress<(double progress, string status)>? progress = null, CancellationToken ct = default)
+    {
+        var appDir = AppDomain.CurrentDomain.BaseDirectory;
+        var modelsDir = Path.Combine(appDir, "whisper-server", "models");
+
+        Directory.CreateDirectory(modelsDir);
+
+        var modelFileName = $"ggml-{modelName}.bin";
+        var modelPath = Path.Combine(modelsDir, modelFileName);
+
+        // Get model size for display
+        var modelSizes = new Dictionary<string, string>
+        {
+            { "tiny.en", "~75 MB" },
+            { "tiny", "~75 MB" },
+            { "base.en", "~142 MB" },
+            { "base", "~142 MB" },
+            { "small.en", "~466 MB" },
+            { "small", "~466 MB" },
+            { "medium.en", "~1.5 GB" },
+            { "medium", "~1.5 GB" },
+            { "large-v3", "~3 GB" },
+            { "large-v3-turbo", "~1.6 GB" }
+        };
+
+        var sizeDisplay = modelSizes.TryGetValue(modelName, out var size) ? size : "unknown size";
+
+        // Model URL from HuggingFace ggerganov/whisper.cpp repo
+        var modelUrl = $"https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{modelFileName}";
+
+        progress?.Report((0, $"Downloading {modelName} model ({sizeDisplay})..."));
+        Log($"Downloading whisper model: {modelUrl}");
+
+        try
+        {
+            await DownloadFileAsync(modelUrl, modelPath, new Progress<(double, string)>(p =>
+            {
+                progress?.Report((p.Item1 * 0.95, p.Item2));
+            }), ct);
+
+            progress?.Report((100, "Done!"));
+            Log($"Whisper model download complete: {modelFileName}");
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to download model {modelName}: {ex.Message}");
+            // Clean up partial download
+            try { if (File.Exists(modelPath)) File.Delete(modelPath); } catch { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Checks if a specific whisper model is installed.
+    /// </summary>
+    public bool IsWhisperModelInstalled(string modelName)
+    {
+        var modelFileName = $"ggml-{modelName}.bin";
+        var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "whisper-server", "models", modelFileName);
+        return File.Exists(modelPath);
+    }
+
+    /// <summary>
     /// Gets the Piper voice catalog from HuggingFace.
     /// </summary>
     public async Task<PiperVoiceCatalog> GetPiperVoiceCatalogAsync(CancellationToken ct = default)

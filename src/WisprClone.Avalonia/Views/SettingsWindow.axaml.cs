@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -141,41 +142,15 @@ public partial class SettingsWindow : Window
 
     private void PopulateSttProviders()
     {
-        // Dynamically populate STT providers based on platform
-        bool isWindows = OperatingSystem.IsWindows();
-        bool isMacOS = OperatingSystem.IsMacOS();
-
+        // Use centralized helper for provider population
         SpeechProviderComboBox.Items.Clear();
 
-        // Add platform-specific local option first
-        if (isWindows)
+        foreach (var (provider, displayName, _) in Core.ProviderHelper.GetAvailableSpeechProviders())
         {
-            SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "Local (Windows Speech)", Tag = "Offline" });
-            SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "Faster-Whisper (Offline)", Tag = "FasterWhisper" });
-            SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "Whisper Server (Instant)", Tag = "WhisperServer" });
-        }
-        else if (isMacOS)
-        {
-            SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "Local (macOS Speech)", Tag = "MacOSNative" });
+            SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = displayName, Tag = provider.ToString() });
         }
 
-        // Add cloud providers (available on all platforms)
-        SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "Azure Speech", Tag = "Azure" });
-        SpeechProviderComboBox.Items.Add(new ComboBoxItem { Content = "OpenAI Whisper", Tag = "OpenAI" });
-
-        // Update info text based on platform
-        if (isMacOS)
-        {
-            ProviderInfoText.Text = "Ctrl+Ctrl to dictate. Local uses Apple's on-device recognition.";
-        }
-        else if (isWindows)
-        {
-            ProviderInfoText.Text = "Ctrl+Ctrl to dictate. Local uses Windows Speech Recognition.";
-        }
-        else
-        {
-            ProviderInfoText.Text = "Ctrl+Ctrl to dictate. On Linux, only cloud providers are available.";
-        }
+        ProviderInfoText.Text = Core.ProviderHelper.GetSpeechProviderInfoText();
     }
 
     private void SpeechProviderComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -494,57 +469,32 @@ public partial class SettingsWindow : Window
 
     private void PopulateTtsProviders()
     {
-        // Dynamically populate TTS providers based on platform
-        bool isWindows = OperatingSystem.IsWindows();
-        bool isMacOS = OperatingSystem.IsMacOS();
-
+        // Use centralized helper for provider population
         TtsProviderComboBox.Items.Clear();
 
-        // Add platform-specific local option first
-        if (isWindows)
+        foreach (var (provider, displayName, _) in Core.ProviderHelper.GetAvailableTtsProviders())
         {
-            TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = "Local (Windows Speech)", Tag = "Offline" });
-            TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = "Piper (Offline)", Tag = "Piper" });
-        }
-        else if (isMacOS)
-        {
-            TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = "Local (macOS Speech)", Tag = "MacOSNative" });
+            TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = displayName, Tag = provider.ToString() });
         }
 
-        // Add cloud providers (available on all platforms)
-        TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = "Azure Speech", Tag = "Azure" });
-        TtsProviderComboBox.Items.Add(new ComboBoxItem { Content = "OpenAI TTS", Tag = "OpenAI" });
-
-        // Update info text based on platform
-        if (isMacOS)
-        {
-            TtsProviderInfoText.Text = "Shift+Shift to read clipboard. Local uses macOS system voices.";
-        }
-        else if (!isWindows)
-        {
-            TtsProviderInfoText.Text = "Shift+Shift to read clipboard. On Linux, only cloud providers are available.";
-        }
+        TtsProviderInfoText.Text = Core.ProviderHelper.GetTtsProviderInfoText();
     }
 
     private void UpdateTtsProviderVisibility()
     {
-        // This method now just ensures proper selection after provider list is populated
-        bool isWindows = OperatingSystem.IsWindows();
-        bool isMacOS = OperatingSystem.IsMacOS();
-
+        // Ensure proper selection after provider list is populated
         var selectedItem = TtsProviderComboBox.SelectedItem as ComboBoxItem;
         var selectedTag = selectedItem?.Tag?.ToString();
 
-        // Handle selection if current provider is not available on this platform
-        if (selectedTag == "Offline" && !isWindows)
+        // Get available providers to check if current selection is valid
+        var availableProviders = Core.ProviderHelper.GetAvailableTtsProviders();
+        var isValidSelection = availableProviders.Any(p => p.Provider.ToString() == selectedTag);
+
+        if (!isValidSelection)
         {
-            // On macOS, default to MacOSNative; on Linux, default to Azure
-            SelectComboBoxItemByTag(TtsProviderComboBox, isMacOS ? "MacOSNative" : "Azure");
-        }
-        else if (selectedTag == "MacOSNative" && !isMacOS)
-        {
-            // On Windows, default to Offline; on Linux, default to Azure
-            SelectComboBoxItemByTag(TtsProviderComboBox, isWindows ? "Offline" : "Azure");
+            // Select the default provider for this platform
+            var defaultProvider = Core.ProviderHelper.GetDefaultTtsProvider();
+            SelectComboBoxItemByTag(TtsProviderComboBox, defaultProvider.ToString());
         }
     }
 
@@ -679,6 +629,9 @@ public partial class SettingsWindow : Window
             // Hide download panel on success
             WhisperServerDownloadPanel.IsVisible = false;
             WhisperServerDownloadStatus.Text = "Downloaded successfully!";
+
+            // Update model status after server download
+            UpdateWhisperServerModelStatus();
         }
         catch (Exception ex)
         {
@@ -689,6 +642,74 @@ public partial class SettingsWindow : Window
         finally
         {
             WhisperServerDownloadProgress.IsVisible = false;
+        }
+    }
+
+    private void WhisperServerModelComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        UpdateWhisperServerModelStatus();
+    }
+
+    private void UpdateWhisperServerModelStatus()
+    {
+        var selectedModel = GetSelectedComboBoxTag(WhisperServerModelComboBox);
+        if (string.IsNullOrEmpty(selectedModel)) return;
+
+        var modelFileName = $"ggml-{selectedModel}.bin";
+        var modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "whisper-server", "models", modelFileName);
+        var modelExists = File.Exists(modelPath);
+
+        WhisperServerModelDownloadPanel.IsVisible = !modelExists;
+
+        if (modelExists)
+        {
+            WhisperServerModelStatusText.Text = "Model downloaded";
+            WhisperServerModelStatusText.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FF4CAF50"));
+        }
+        else
+        {
+            WhisperServerModelStatusText.Text = $"Model not downloaded ({modelFileName})";
+            WhisperServerModelStatusText.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFFF6B6B"));
+        }
+    }
+
+    private async void DownloadWhisperModelButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var selectedModel = GetSelectedComboBoxTag(WhisperServerModelComboBox);
+        if (string.IsNullOrEmpty(selectedModel)) return;
+
+        DownloadWhisperModelButton.IsEnabled = false;
+        WhisperModelDownloadProgress.IsVisible = true;
+        WhisperModelDownloadProgress.Value = 0;
+        WhisperModelDownloadStatus.Text = "Starting...";
+
+        try
+        {
+            var helper = new global::WisprClone.Services.DownloadHelper();
+            var progress = new Progress<(double progress, string status)>(p =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    WhisperModelDownloadProgress.Value = p.progress;
+                    WhisperModelDownloadStatus.Text = p.status;
+                });
+            });
+
+            await helper.DownloadWhisperModelAsync(selectedModel, progress);
+
+            // Update model status on success
+            UpdateWhisperServerModelStatus();
+            WhisperModelDownloadStatus.Text = "Downloaded successfully!";
+        }
+        catch (Exception ex)
+        {
+            WhisperModelDownloadStatus.Text = $"Error: {ex.Message}";
+            WhisperModelDownloadStatus.Foreground = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#FFFF6B6B"));
+        }
+        finally
+        {
+            DownloadWhisperModelButton.IsEnabled = true;
+            WhisperModelDownloadProgress.IsVisible = false;
         }
     }
 
