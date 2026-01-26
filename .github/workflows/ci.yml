@@ -1,12 +1,9 @@
 name: CI
 
+# Disabled automatic PR builds - only run manually or on tags
+# Releases are created by release.yml when tags are pushed
 on:
-  pull_request:
-    branches: [ main, master, develop ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/*.md'
+  workflow_dispatch:  # Manual trigger only
 
 env:
   DOTNET_VERSION: '8.0.x'

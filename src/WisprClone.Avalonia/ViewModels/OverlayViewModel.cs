@@ -291,10 +291,15 @@ public partial class OverlayViewModel : ViewModelBase
                            ?? AvailableLanguages.First();
 
         // Use active provider from service manager if available (handles fallback case)
+#if WINDOWS
         var activeSpeechProvider = (speechService as Services.Speech.SpeechServiceManager)?.ActiveProvider
                                    ?? settingsService.Current.SpeechProvider;
         var activeTtsProvider = (ttsService as Services.Tts.TtsServiceManager)?.ActiveProvider
                                 ?? settingsService.Current.TtsProvider;
+#else
+        var activeSpeechProvider = settingsService.Current.SpeechProvider;
+        var activeTtsProvider = settingsService.Current.TtsProvider;
+#endif
 
         SelectedProvider = AvailableProviders.FirstOrDefault(p => p.Provider == activeSpeechProvider)
                            ?? AvailableProviders.First();
