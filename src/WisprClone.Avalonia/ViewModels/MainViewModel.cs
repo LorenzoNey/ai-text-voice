@@ -19,8 +19,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly IGlobalKeyboardHook _keyboardHook;
     private readonly IKeyboardSimulationService _keyboardSimulator;
     private readonly ILoggingService _loggingService;
-    private readonly DoubleKeyTapDetector _sttHotkeyDetector;
-    private readonly DoubleKeyTapDetector _ttsHotkeyDetector;
+    private readonly IHotkeyDetector _sttHotkeyDetector;
+    private readonly IHotkeyDetector _ttsHotkeyDetector;
 
     private OverlayViewModel? _overlayViewModel;
     private CancellationTokenSource? _recognitionCts;
@@ -83,27 +83,27 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
         var settings = settingsService.Current;
 
-        // STT hotkey: configurable double-tap (default: Ctrl+Ctrl)
-        _sttHotkeyDetector = new DoubleKeyTapDetector(
+        // Get hotkey configurations (handles legacy migration automatically)
+        var sttConfig = settings.GetSttHotkeyConfiguration();
+        var ttsConfig = settings.GetTtsHotkeyConfiguration();
+
+        // STT hotkey: uses factory to create appropriate detector
+        _sttHotkeyDetector = HotkeyDetectorFactory.Create(
+            sttConfig,
             keyboardHook,
-            HotkeyToKeyCode(settings.SttHotkey),
-            settings.DoubleTapIntervalMs,
-            settings.MaxKeyHoldDurationMs,
             msg => loggingService.Log("STT-Hotkey", msg));
 
-        // TTS hotkey: configurable double-tap (default: Shift+Shift)
-        _ttsHotkeyDetector = new DoubleKeyTapDetector(
+        // TTS hotkey: uses factory to create appropriate detector
+        _ttsHotkeyDetector = HotkeyDetectorFactory.Create(
+            ttsConfig,
             keyboardHook,
-            HotkeyToKeyCode(settings.TtsHotkey),
-            settings.TtsDoubleTapIntervalMs,
-            settings.TtsMaxKeyHoldDurationMs,
             msg => loggingService.Log("TTS-Hotkey", msg));
 
-        _sttHotkeyDetector.DoubleTapDetected += OnSttDoubleTapDetected;
-        _ttsHotkeyDetector.DoubleTapDetected += OnTtsDoubleTapDetected;
+        _sttHotkeyDetector.HotkeyActivated += OnSttHotkeyActivated;
+        _ttsHotkeyDetector.HotkeyActivated += OnTtsHotkeyActivated;
 
-        Log($"STT detector created with interval={settings.DoubleTapIntervalMs}ms, maxHold={settings.MaxKeyHoldDurationMs}ms");
-        Log($"TTS detector created with interval={settings.TtsDoubleTapIntervalMs}ms, maxHold={settings.TtsMaxKeyHoldDurationMs}ms");
+        Log($"STT hotkey detector created: {sttConfig.GetDisplayName()}");
+        Log($"TTS hotkey detector created: {ttsConfig.GetDisplayName()}");
         _speechService.RecognitionCompleted += OnRecognitionCompleted;
         _speechService.RecognitionPartial += OnRecognitionPartial;
         _ttsService.SpeakCompleted += OnTtsSpeakCompleted;
@@ -146,9 +146,9 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async void OnSttDoubleTapDetected(object? sender, EventArgs e)
+    private async void OnSttHotkeyActivated(object? sender, EventArgs e)
     {
-        Log($"STT DoubleTap detected, current mode: {_currentAppMode}");
+        Log($"STT Hotkey activated, current mode: {_currentAppMode}");
 
         AppMode currentMode;
         lock (_modeLock)
@@ -183,9 +183,9 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async void OnTtsDoubleTapDetected(object? sender, EventArgs e)
+    private async void OnTtsHotkeyActivated(object? sender, EventArgs e)
     {
-        Log($"TTS DoubleTap detected! current mode: {_currentAppMode}");
+        Log($"TTS Hotkey activated! current mode: {_currentAppMode}");
 
         AppMode currentMode;
         lock (_modeLock)
@@ -232,14 +232,6 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         _loggingService.Log("MainViewModel", message);
     }
-
-    private static GlobalKeyCode HotkeyToKeyCode(string hotkey) => hotkey switch
-    {
-        "Ctrl" => GlobalKeyCode.LeftCtrl,
-        "Shift" => GlobalKeyCode.LeftShift,
-        "Alt" => GlobalKeyCode.LeftAlt,
-        _ => GlobalKeyCode.LeftCtrl
-    };
 
     private void SetAppMode(AppMode newMode)
     {
@@ -791,8 +783,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         if (_disposed)
             return;
 
-        _sttHotkeyDetector.DoubleTapDetected -= OnSttDoubleTapDetected;
-        _ttsHotkeyDetector.DoubleTapDetected -= OnTtsDoubleTapDetected;
+        _sttHotkeyDetector.HotkeyActivated -= OnSttHotkeyActivated;
+        _ttsHotkeyDetector.HotkeyActivated -= OnTtsHotkeyActivated;
         _speechService.RecognitionCompleted -= OnRecognitionCompleted;
         _speechService.RecognitionPartial -= OnRecognitionPartial;
         _ttsService.SpeakCompleted -= OnTtsSpeakCompleted;

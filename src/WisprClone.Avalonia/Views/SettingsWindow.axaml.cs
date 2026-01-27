@@ -66,12 +66,16 @@ public partial class SettingsWindow : Window
         // Language
         SelectComboBoxItemByTag(LanguageComboBox, settings.RecognitionLanguage);
 
-        // Hotkey settings
-        SelectComboBoxItemByTag(SttHotkeyComboBox, settings.SttHotkey ?? "Ctrl");
-        SelectComboBoxItemByTag(TtsHotkeyComboBox, settings.TtsHotkey ?? "Shift");
+        // Hotkey settings - use new config format
+        SelectComboBoxItemByTag(SttHotkeyPresetComboBox, settings.SttHotkeyConfig);
+        SelectComboBoxItemByTag(TtsHotkeyPresetComboBox, settings.TtsHotkeyConfig);
         UpdateHotkeyConflictWarning();
-        DoubleTapIntervalTextBox.Text = settings.DoubleTapIntervalMs.ToString();
-        MaxKeyHoldTextBox.Text = settings.MaxKeyHoldDurationMs.ToString();
+
+        // Load timing settings from STT config (they're shared for display purposes)
+        var sttConfig = settings.GetSttHotkeyConfiguration();
+        DoubleTapIntervalTextBox.Text = sttConfig.DoubleTapIntervalMs.ToString();
+        MaxKeyHoldTextBox.Text = sttConfig.MaxTapHoldDurationMs.ToString();
+        UpdateDoubleTapTimingVisibility();
 
         // Recording limits
         MaxRecordingDurationTextBox.Text = settings.MaxRecordingDurationSeconds.ToString();
@@ -173,8 +177,8 @@ public partial class SettingsWindow : Window
         SpeechProviderComboBox.SelectionChanged += (s, e) => { UpdateSttSettingsPanelVisibility(); AutoSave(); };
         TtsProviderComboBox.SelectionChanged += (s, e) => { UpdateTtsSettingsPanelVisibility(); AutoSave(); };
         LanguageComboBox.SelectionChanged += (s, e) => AutoSave();
-        SttHotkeyComboBox.SelectionChanged += (s, e) => { UpdateHotkeyConflictWarning(); AutoSave(); };
-        TtsHotkeyComboBox.SelectionChanged += (s, e) => { UpdateHotkeyConflictWarning(); AutoSave(); };
+        SttHotkeyPresetComboBox.SelectionChanged += (s, e) => { UpdateHotkeyConflictWarning(); UpdateDoubleTapTimingVisibility(); AutoSave(); };
+        TtsHotkeyPresetComboBox.SelectionChanged += (s, e) => { UpdateHotkeyConflictWarning(); UpdateDoubleTapTimingVisibility(); AutoSave(); };
         FasterWhisperModelComboBox.SelectionChanged += (s, e) => AutoSave();
         FasterWhisperLanguageComboBox.SelectionChanged += (s, e) => AutoSave();
         FasterWhisperComputeTypeComboBox.SelectionChanged += (s, e) => AutoSave();
@@ -267,16 +271,25 @@ public partial class SettingsWindow : Window
             // Language
             settings.RecognitionLanguage = GetSelectedComboBoxTag(LanguageComboBox) ?? "en-US";
 
-            // Hotkey settings
-            settings.SttHotkey = GetSelectedComboBoxTag(SttHotkeyComboBox) ?? "Ctrl";
-            settings.TtsHotkey = GetSelectedComboBoxTag(TtsHotkeyComboBox) ?? "Shift";
-            if (int.TryParse(DoubleTapIntervalTextBox.Text, out var doubleTapInterval))
+            // Hotkey settings - use new config format with custom timing
+            var sttPreset = GetSelectedComboBoxTag(SttHotkeyPresetComboBox) ?? "DoubleTap:Ctrl::400:200:1000";
+            var ttsPreset = GetSelectedComboBoxTag(TtsHotkeyPresetComboBox) ?? "DoubleTap:Shift::400:200:1000";
+
+            // Parse and apply custom timing values for double-tap hotkeys
+            if (int.TryParse(DoubleTapIntervalTextBox.Text, out var doubleTapInterval) &&
+                int.TryParse(MaxKeyHoldTextBox.Text, out var maxKeyHold))
             {
-                settings.DoubleTapIntervalMs = Math.Clamp(doubleTapInterval, 100, 1000);
+                doubleTapInterval = Math.Clamp(doubleTapInterval, 100, 1000);
+                maxKeyHold = Math.Clamp(maxKeyHold, 50, 500);
+
+                // Update the timing values in the config strings
+                settings.SttHotkeyConfig = UpdateHotkeyConfigTiming(sttPreset, doubleTapInterval, maxKeyHold);
+                settings.TtsHotkeyConfig = UpdateHotkeyConfigTiming(ttsPreset, doubleTapInterval, maxKeyHold);
             }
-            if (int.TryParse(MaxKeyHoldTextBox.Text, out var maxKeyHold))
+            else
             {
-                settings.MaxKeyHoldDurationMs = Math.Clamp(maxKeyHold, 50, 500);
+                settings.SttHotkeyConfig = sttPreset;
+                settings.TtsHotkeyConfig = ttsPreset;
             }
 
             // Recording limits
@@ -597,9 +610,36 @@ public partial class SettingsWindow : Window
 
     private void UpdateHotkeyConflictWarning()
     {
-        var sttKey = GetSelectedComboBoxTag(SttHotkeyComboBox);
-        var ttsKey = GetSelectedComboBoxTag(TtsHotkeyComboBox);
-        HotkeyConflictWarning.IsVisible = sttKey == ttsKey;
+        var sttConfig = GetSelectedComboBoxTag(SttHotkeyPresetComboBox);
+        var ttsConfig = GetSelectedComboBoxTag(TtsHotkeyPresetComboBox);
+        HotkeyConflictWarning.IsVisible = sttConfig == ttsConfig;
+    }
+
+    private void UpdateDoubleTapTimingVisibility()
+    {
+        // Show timing panel if either STT or TTS uses double-tap
+        var sttConfig = GetSelectedComboBoxTag(SttHotkeyPresetComboBox) ?? "";
+        var ttsConfig = GetSelectedComboBoxTag(TtsHotkeyPresetComboBox) ?? "";
+
+        var hasDoubleTap = sttConfig.StartsWith("DoubleTap:") || ttsConfig.StartsWith("DoubleTap:");
+        DoubleTapTimingPanel.IsVisible = hasDoubleTap;
+    }
+
+    private static string UpdateHotkeyConfigTiming(string configString, int doubleTapInterval, int maxKeyHold)
+    {
+        // Parse the config string and update timing values
+        // Format: "ActivationType:PrimaryKey:Modifiers:DoubleTapIntervalMs:MaxTapHoldDurationMs:HoldDurationMs"
+        var parts = configString.Split(':');
+        if (parts.Length >= 2)
+        {
+            var activationType = parts[0];
+            var primaryKey = parts[1];
+            var modifiers = parts.Length > 2 ? parts[2] : "";
+            var holdDuration = parts.Length > 5 ? parts[5] : "1000";
+
+            return $"{activationType}:{primaryKey}:{modifiers}:{doubleTapInterval}:{maxKeyHold}:{holdDuration}";
+        }
+        return configString;
     }
 
     private async void DownloadFasterWhisperButton_Click(object? sender, RoutedEventArgs e)

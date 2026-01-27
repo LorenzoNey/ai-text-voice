@@ -55,6 +55,8 @@ public class GlobalKeyEventArgs : EventArgs
 public enum GlobalKeyCode
 {
     Unknown = 0,
+
+    // Modifier keys
     LeftCtrl,
     RightCtrl,
     LeftAlt,
@@ -63,8 +65,53 @@ public enum GlobalKeyCode
     RightShift,
     LeftMeta,  // Command key on macOS, Windows key on Windows
     RightMeta, // Command key on macOS, Windows key on Windows
+
+    // Common keys
     Space,
     Enter,
     Escape,
-    Tab
+    Tab,
+
+    // Function keys (F1-F12)
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    F10,
+    F11,
+    F12,
+
+    // Extended function keys (F13-F24) - rarely used by OS, good for hotkeys
+    F13,
+    F14,
+    F15,
+    F16,
+    F17,
+    F18,
+    F19,
+    F20,
+    F21,
+    F22,
+    F23,
+    F24,
+
+    // Lock keys
+    CapsLock,
+    ScrollLock,
+    NumLock,
+
+    // Other keys
+    Pause,
+    PrintScreen,
+    Insert,
+    Delete,
+    Home,
+    End,
+    PageUp,
+    PageDown
 }

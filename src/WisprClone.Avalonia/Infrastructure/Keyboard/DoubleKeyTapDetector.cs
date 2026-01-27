@@ -5,8 +5,9 @@ namespace WisprClone.Infrastructure.Keyboard;
 
 /// <summary>
 /// Cross-platform detector for double-tap of a specific key (e.g., Ctrl key).
+/// Implements IHotkeyDetector for unified hotkey handling.
 /// </summary>
-public class DoubleKeyTapDetector : IDisposable
+public class DoubleKeyTapDetector : IHotkeyDetector
 {
     private readonly IGlobalKeyboardHook _hook;
     private readonly GlobalKeyCode _targetKey;
@@ -23,7 +24,12 @@ public class DoubleKeyTapDetector : IDisposable
     private bool _started;
 
     /// <summary>
-    /// Raised when a double-tap is detected.
+    /// Raised when a double-tap is detected (IHotkeyDetector implementation).
+    /// </summary>
+    public event EventHandler? HotkeyActivated;
+
+    /// <summary>
+    /// Raised when a double-tap is detected (legacy event, same as HotkeyActivated).
     /// </summary>
     public event EventHandler? DoubleTapDetected;
 
@@ -75,6 +81,11 @@ public class DoubleKeyTapDetector : IDisposable
         _started = false;
         _hook.Uninstall();
     }
+
+    /// <summary>
+    /// Whether the detector is currently active (IHotkeyDetector implementation).
+    /// </summary>
+    public bool IsActive => _started;
 
     private void Log(string message)
     {
@@ -142,8 +153,11 @@ public class DoubleKeyTapDetector : IDisposable
         {
             Log($"DOUBLE-TAP DETECTED! Firing event...");
             _tapCount = 0;
+            // Fire both events for backward compatibility
+            HotkeyActivated?.Invoke(this, EventArgs.Empty);
             DoubleTapDetected?.Invoke(this, EventArgs.Empty);
-            Log($"Event fired, handlers count={(DoubleTapDetected?.GetInvocationList().Length ?? 0)}");
+            var totalHandlers = (HotkeyActivated?.GetInvocationList().Length ?? 0) + (DoubleTapDetected?.GetInvocationList().Length ?? 0);
+            Log($"Events fired, total handlers count={totalHandlers}");
         }
     }
 

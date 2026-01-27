@@ -22,6 +22,11 @@ public class AppSettings
     public string RecognitionLanguage { get; set; } = "en-US";
 
     // STT Hotkey Settings (Ctrl+Ctrl by default)
+    // New format: serialized HotkeyConfiguration string
+    public string SttHotkeyConfig { get; set; } = "DoubleTap:Ctrl::400:200:1000";
+
+    // Legacy properties (kept for backward compatibility, will be migrated on first load)
+    [Obsolete("Use SttHotkeyConfig instead")]
     public string SttHotkey { get; set; } = "Ctrl";  // "Ctrl", "Shift", or "Alt"
     public int DoubleTapIntervalMs { get; set; } = 400;
     public int MaxKeyHoldDurationMs { get; set; } = 200;
@@ -64,6 +69,11 @@ public class AppSettings
     public string PiperVoicePath { get; set; } = "voices/en_US-amy-medium.onnx";
 
     // TTS Hotkey Settings (Shift+Shift by default)
+    // New format: serialized HotkeyConfiguration string
+    public string TtsHotkeyConfig { get; set; } = "DoubleTap:Shift::400:200:1000";
+
+    // Legacy properties (kept for backward compatibility, will be migrated on first load)
+    [Obsolete("Use TtsHotkeyConfig instead")]
     public string TtsHotkey { get; set; } = "Shift";  // "Ctrl", "Shift", or "Alt"
     public int TtsDoubleTapIntervalMs { get; set; } = 400;
     public int TtsMaxKeyHoldDurationMs { get; set; } = 200;
@@ -91,4 +101,62 @@ public class AppSettings
 
     // Debugging
     public bool EnableLogging { get; set; } = false;
+
+    /// <summary>
+    /// Gets the STT hotkey configuration, handling legacy migration.
+    /// </summary>
+    public HotkeyConfiguration GetSttHotkeyConfiguration()
+    {
+        // If the new config is not the default, use it
+        if (!string.IsNullOrEmpty(SttHotkeyConfig) && SttHotkeyConfig != "DoubleTap:Ctrl::400:200:1000")
+        {
+            return HotkeyConfiguration.Deserialize(SttHotkeyConfig);
+        }
+
+        // Check if legacy settings have been customized
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (SttHotkey != "Ctrl" || DoubleTapIntervalMs != 400 || MaxKeyHoldDurationMs != 200)
+        {
+            // Migrate legacy settings to new format
+            return new HotkeyConfiguration
+            {
+                ActivationType = HotkeyActivationType.DoubleTap,
+                PrimaryKey = SttHotkey,
+                DoubleTapIntervalMs = DoubleTapIntervalMs,
+                MaxTapHoldDurationMs = MaxKeyHoldDurationMs
+            };
+        }
+#pragma warning restore CS0618
+
+        return HotkeyConfiguration.Deserialize(SttHotkeyConfig);
+    }
+
+    /// <summary>
+    /// Gets the TTS hotkey configuration, handling legacy migration.
+    /// </summary>
+    public HotkeyConfiguration GetTtsHotkeyConfiguration()
+    {
+        // If the new config is not the default, use it
+        if (!string.IsNullOrEmpty(TtsHotkeyConfig) && TtsHotkeyConfig != "DoubleTap:Shift::400:200:1000")
+        {
+            return HotkeyConfiguration.Deserialize(TtsHotkeyConfig);
+        }
+
+        // Check if legacy settings have been customized
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (TtsHotkey != "Shift" || TtsDoubleTapIntervalMs != 400 || TtsMaxKeyHoldDurationMs != 200)
+        {
+            // Migrate legacy settings to new format
+            return new HotkeyConfiguration
+            {
+                ActivationType = HotkeyActivationType.DoubleTap,
+                PrimaryKey = TtsHotkey,
+                DoubleTapIntervalMs = TtsDoubleTapIntervalMs,
+                MaxTapHoldDurationMs = TtsMaxKeyHoldDurationMs
+            };
+        }
+#pragma warning restore CS0618
+
+        return HotkeyConfiguration.Deserialize(TtsHotkeyConfig);
+    }
 }

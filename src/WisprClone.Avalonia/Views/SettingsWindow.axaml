@@ -749,51 +749,77 @@
 
                                 <!-- STT Hotkey Selection -->
                                 <TextBlock Text="Speech-to-Text Hotkey" Classes="label"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <ComboBox x:Name="SttHotkeyComboBox" Classes="settings" Width="200">
-                                        <ComboBoxItem Content="Ctrl (or Cmd on Mac)" Tag="Ctrl"/>
-                                        <ComboBoxItem Content="Shift" Tag="Shift"/>
-                                        <ComboBoxItem Content="Alt (or Option on Mac)" Tag="Alt"/>
-                                    </ComboBox>
-                                    <TextBlock Text="+ same key (double-tap)" Classes="inlineLabel" Margin="8,0,0,0"/>
-                                </StackPanel>
+                                <ComboBox x:Name="SttHotkeyPresetComboBox" Classes="settings" Width="280" Margin="0,0,0,12">
+                                    <!-- Double-tap presets (safest - no OS conflicts) -->
+                                    <ComboBoxItem Content="Ctrl + Ctrl (double-tap)" Tag="DoubleTap:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Shift + Shift (double-tap)" Tag="DoubleTap:Shift::400:200:1000"/>
+                                    <ComboBoxItem Content="Alt + Alt (double-tap)" Tag="DoubleTap:Alt::400:200:1000"/>
+                                    <!-- Modifier combinations -->
+                                    <ComboBoxItem Content="Ctrl + Space" Tag="Combination:Space:Ctrl:400:200:1000"/>
+                                    <!-- Function keys (F9-F12 commonly available) -->
+                                    <ComboBoxItem Content="F9 (single press)" Tag="SinglePress:F9::400:200:1000"/>
+                                    <ComboBoxItem Content="F10 (single press)" Tag="SinglePress:F10::400:200:1000"/>
+                                    <!-- Extended function keys (F13-F24 rarely used) -->
+                                    <ComboBoxItem Content="F13 (single press)" Tag="SinglePress:F13::400:200:1000"/>
+                                    <ComboBoxItem Content="F14 (single press)" Tag="SinglePress:F14::400:200:1000"/>
+                                    <ComboBoxItem Content="F15 (single press)" Tag="SinglePress:F15::400:200:1000"/>
+                                    <!-- Hold-to-activate -->
+                                    <ComboBoxItem Content="Hold Ctrl (1 second)" Tag="Hold:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Hold Shift (1 second)" Tag="Hold:Shift::400:200:1000"/>
+                                </ComboBox>
 
                                 <!-- TTS Hotkey Selection -->
                                 <TextBlock Text="Text-to-Speech Hotkey" Classes="label"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <ComboBox x:Name="TtsHotkeyComboBox" Classes="settings" Width="200">
-                                        <ComboBoxItem Content="Ctrl (or Cmd on Mac)" Tag="Ctrl"/>
-                                        <ComboBoxItem Content="Shift" Tag="Shift"/>
-                                        <ComboBoxItem Content="Alt (or Option on Mac)" Tag="Alt"/>
-                                    </ComboBox>
-                                    <TextBlock Text="+ same key (double-tap)" Classes="inlineLabel" Margin="8,0,0,0"/>
-                                </StackPanel>
+                                <ComboBox x:Name="TtsHotkeyPresetComboBox" Classes="settings" Width="280" Margin="0,0,0,12">
+                                    <!-- Double-tap presets (safest - no OS conflicts) -->
+                                    <ComboBoxItem Content="Ctrl + Ctrl (double-tap)" Tag="DoubleTap:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Shift + Shift (double-tap)" Tag="DoubleTap:Shift::400:200:1000"/>
+                                    <ComboBoxItem Content="Alt + Alt (double-tap)" Tag="DoubleTap:Alt::400:200:1000"/>
+                                    <!-- Modifier combinations -->
+                                    <ComboBoxItem Content="Ctrl + Space" Tag="Combination:Space:Ctrl:400:200:1000"/>
+                                    <!-- Function keys (F9-F12 commonly available) -->
+                                    <ComboBoxItem Content="F9 (single press)" Tag="SinglePress:F9::400:200:1000"/>
+                                    <ComboBoxItem Content="F10 (single press)" Tag="SinglePress:F10::400:200:1000"/>
+                                    <!-- Extended function keys (F13-F24 rarely used) -->
+                                    <ComboBoxItem Content="F13 (single press)" Tag="SinglePress:F13::400:200:1000"/>
+                                    <ComboBoxItem Content="F14 (single press)" Tag="SinglePress:F14::400:200:1000"/>
+                                    <ComboBoxItem Content="F15 (single press)" Tag="SinglePress:F15::400:200:1000"/>
+                                    <!-- Hold-to-activate -->
+                                    <ComboBoxItem Content="Hold Ctrl (1 second)" Tag="Hold:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Hold Shift (1 second)" Tag="Hold:Shift::400:200:1000"/>
+                                </ComboBox>
 
                                 <!-- Conflict Warning -->
                                 <TextBlock x:Name="HotkeyConflictWarning"
-                                           Text="Warning: STT and TTS use the same key."
+                                           Text="Warning: STT and TTS use the same hotkey."
                                            Foreground="#FFFFCC00"
                                            IsVisible="False"
                                            Margin="0,0,0,12"/>
 
-                                <!-- Timing Settings -->
-                                <Border Height="1" Background="#FF333333" Margin="0,4,0,12"/>
-                                <TextBlock Text="Timing" Classes="label" FontWeight="SemiBold"/>
+                                <!-- Timing Settings (shown only for double-tap hotkeys) -->
+                                <StackPanel x:Name="DoubleTapTimingPanel" Margin="0,0,0,12">
+                                    <Border Height="1" Background="#FF333333" Margin="0,0,0,12"/>
+                                    <TextBlock Text="Double-Tap Timing" Classes="label" FontWeight="SemiBold"/>
 
-                                <StackPanel Classes="inputRow">
-                                    <TextBlock Text="Double-tap interval" Classes="inlineLabel" Width="140"/>
-                                    <TextBox x:Name="DoubleTapIntervalTextBox" Classes="settings" Width="100"/>
-                                    <TextBlock Text="ms" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                    <StackPanel Classes="inputRow" Margin="0,4,0,0">
+                                        <TextBlock Text="Tap interval" Classes="inlineLabel" Width="120"/>
+                                        <TextBox x:Name="DoubleTapIntervalTextBox" Classes="settings" Width="80"/>
+                                        <TextBlock Text="ms (max time between taps)" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <StackPanel Classes="inputRow">
+                                        <TextBlock Text="Max hold" Classes="inlineLabel" Width="120"/>
+                                        <TextBox x:Name="MaxKeyHoldTextBox" Classes="settings" Width="80"/>
+                                        <TextBlock Text="ms (longer = not a tap)" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                    </StackPanel>
                                 </StackPanel>
 
-                                <StackPanel Classes="inputRow">
-                                    <TextBlock Text="Max key hold" Classes="inlineLabel" Width="140"/>
-                                    <TextBox x:Name="MaxKeyHoldTextBox" Classes="settings" Width="100"/>
-                                    <TextBlock Text="ms" Classes="inlineLabel" Margin="8,0,0,0"/>
-                                </StackPanel>
+                                <!-- Info text -->
+                                <TextBlock Text="Recommended: Double-tap hotkeys are safest and won't conflict with other apps. F13-F24 keys are ideal for single-press as they're rarely used by any software."
+                                           Classes="info" Margin="0,0,0,8"/>
 
                                 <TextBlock Text="Note: Hotkey changes require an app restart."
-                                           Classes="info" Margin="0,12,0,0"/>
+                                           Classes="info" Foreground="#FFFFCC00"/>
                             </StackPanel>
                         </Border>
 
