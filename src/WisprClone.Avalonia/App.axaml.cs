@@ -250,7 +250,7 @@ public partial class App : Application
 
             var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
             var updateService = _serviceProvider.GetRequiredService<IUpdateService>();
-            _settingsWindow = new SettingsWindow(settingsService, updateService);
+            _settingsWindow = new SettingsWindow(settingsService, updateService, _mainViewModel.ReloadHotkeyDetectors);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
             _settingsWindow.Show();
         }

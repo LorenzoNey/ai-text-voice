@@ -16,7 +16,10 @@ public partial class SettingsWindow : Window
 {
     private readonly ISettingsService _settingsService;
     private readonly IUpdateService? _updateService;
+    private readonly Action? _onHotkeySettingsChanged;
     private bool _isLoading = true; // Prevent auto-save during initial load
+    private string? _lastSttHotkeyConfig;
+    private string? _lastTtsHotkeyConfig;
 
     public SettingsWindow()
     {
@@ -24,11 +27,12 @@ public partial class SettingsWindow : Window
         _settingsService = null!; // Will be set via property
     }
 
-    public SettingsWindow(ISettingsService settingsService, IUpdateService? updateService = null)
+    public SettingsWindow(ISettingsService settingsService, IUpdateService? updateService = null, Action? onHotkeySettingsChanged = null)
     {
         InitializeComponent();
         _settingsService = settingsService;
         _updateService = updateService;
+        _onHotkeySettingsChanged = onHotkeySettingsChanged;
 
         LoadSettings();
         LoadUpdateStatus();
@@ -36,6 +40,10 @@ public partial class SettingsWindow : Window
         UpdateTtsSettingsPanelVisibility();
         SetupAutoSaveEvents();
         PopulatePiperVoices();
+
+        // Store initial hotkey configs to detect changes
+        _lastSttHotkeyConfig = settingsService.Current.SttHotkeyConfig;
+        _lastTtsHotkeyConfig = settingsService.Current.TtsHotkeyConfig;
 
         _isLoading = false; // Enable auto-save after initial load
     }
@@ -353,6 +361,16 @@ public partial class SettingsWindow : Window
             settings.WhisperStreamingEnabled = WhisperStreamingEnabledCheckBox.IsChecked ?? true;
             settings.WhisperStreamingWindowSeconds = (int)WhisperWindowSlider.Value;
         });
+
+        // Check if hotkey settings changed and notify
+        var currentSttConfig = _settingsService.Current.SttHotkeyConfig;
+        var currentTtsConfig = _settingsService.Current.TtsHotkeyConfig;
+        if (currentSttConfig != _lastSttHotkeyConfig || currentTtsConfig != _lastTtsHotkeyConfig)
+        {
+            _lastSttHotkeyConfig = currentSttConfig;
+            _lastTtsHotkeyConfig = currentTtsConfig;
+            _onHotkeySettingsChanged?.Invoke();
+        }
     }
 
     private void UpdateSttSettingsPanelVisibility()

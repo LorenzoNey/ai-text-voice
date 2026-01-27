@@ -816,10 +816,7 @@
 
                                 <!-- Info text -->
                                 <TextBlock Text="Recommended: Double-tap hotkeys are safest and won't conflict with other apps. F13-F24 keys are ideal for single-press as they're rarely used by any software."
-                                           Classes="info" Margin="0,0,0,8"/>
-
-                                <TextBlock Text="Note: Hotkey changes require an app restart."
-                                           Classes="info" Foreground="#FFFFCC00"/>
+                                           Classes="info"/>
                             </StackPanel>
                         </Border>
 

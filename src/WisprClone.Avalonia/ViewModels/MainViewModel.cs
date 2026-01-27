@@ -19,8 +19,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly IGlobalKeyboardHook _keyboardHook;
     private readonly IKeyboardSimulationService _keyboardSimulator;
     private readonly ILoggingService _loggingService;
-    private readonly IHotkeyDetector _sttHotkeyDetector;
-    private readonly IHotkeyDetector _ttsHotkeyDetector;
+    private IHotkeyDetector _sttHotkeyDetector;
+    private IHotkeyDetector _ttsHotkeyDetector;
 
     private OverlayViewModel? _overlayViewModel;
     private CancellationTokenSource? _recognitionCts;
@@ -144,6 +144,50 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         {
             ShowOverlay();
         }
+    }
+
+    /// <summary>
+    /// Recreates the hotkey detectors with current settings.
+    /// Call this when hotkey settings are changed to apply them without restart.
+    /// </summary>
+    public void ReloadHotkeyDetectors()
+    {
+        Log("Reloading hotkey detectors...");
+
+        // Stop and unsubscribe from old detectors
+        _sttHotkeyDetector.Stop();
+        _ttsHotkeyDetector.Stop();
+        _sttHotkeyDetector.HotkeyActivated -= OnSttHotkeyActivated;
+        _ttsHotkeyDetector.HotkeyActivated -= OnTtsHotkeyActivated;
+        _sttHotkeyDetector.Dispose();
+        _ttsHotkeyDetector.Dispose();
+
+        // Get new configurations
+        var settings = _settingsService.Current;
+        var sttConfig = settings.GetSttHotkeyConfiguration();
+        var ttsConfig = settings.GetTtsHotkeyConfiguration();
+
+        // Create new detectors
+        _sttHotkeyDetector = HotkeyDetectorFactory.Create(
+            sttConfig,
+            _keyboardHook,
+            msg => _loggingService.Log("STT-Hotkey", msg));
+
+        _ttsHotkeyDetector = HotkeyDetectorFactory.Create(
+            ttsConfig,
+            _keyboardHook,
+            msg => _loggingService.Log("TTS-Hotkey", msg));
+
+        // Subscribe to events
+        _sttHotkeyDetector.HotkeyActivated += OnSttHotkeyActivated;
+        _ttsHotkeyDetector.HotkeyActivated += OnTtsHotkeyActivated;
+
+        // Start new detectors
+        _sttHotkeyDetector.Start();
+        _ttsHotkeyDetector.Start();
+
+        Log($"STT hotkey reloaded: {sttConfig.GetDisplayName()}");
+        Log($"TTS hotkey reloaded: {ttsConfig.GetDisplayName()}");
     }
 
     private async void OnSttHotkeyActivated(object? sender, EventArgs e)
