@@ -131,12 +131,12 @@ public partial class AboutWindow : Window
 
     private void UserGuideButton_Click(object? sender, RoutedEventArgs e)
     {
-        OpenUrl("https://github.com/LorenzoNey/aitextvoice/blob/main/docs/USER_GUIDE.md");
+        OpenUrl("https://github.com/LorenzoNey/ai-text-voice/blob/main/docs/USER_GUIDE.md");
     }
 
     private void GitHubButton_Click(object? sender, RoutedEventArgs e)
     {
-        OpenUrl("https://github.com/LorenzoNey/aitextvoice");
+        OpenUrl("https://github.com/LorenzoNey/ai-text-voice");
     }
 
     private static void OpenUrl(string url)

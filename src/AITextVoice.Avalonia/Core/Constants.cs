@@ -58,7 +58,7 @@ public static class Constants
     /// <summary>
     /// GitHub repository name.
     /// </summary>
-    public const string GitHubRepo = "aitextvoice";
+    public const string GitHubRepo = "ai-text-voice";
 
     /// <summary>
     /// Default update check interval in hours.

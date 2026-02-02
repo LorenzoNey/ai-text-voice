@@ -60,7 +60,7 @@ The application prioritizes **local AI processing** for privacy and speed, with 
 
 ### Windows
 
-1. Download the installer (`AITextVoice-Setup.exe`) from the [Releases page](https://github.com/your-repo/releases)
+1. Download the installer (`AITextVoice-Setup.exe`) from the [Releases page](https://github.com/LorenzoNey/ai-text-voice/releases)
 2. Run the installer and follow the prompts
 3. Launch AITextVoice from the Start menu or desktop shortcut
 4. The application will start minimized to the system tray
@@ -69,7 +69,7 @@ The application prioritizes **local AI processing** for privacy and speed, with 
 
 ### macOS
 
-1. Download the DMG file (`AITextVoice.dmg`) from the [Releases page](https://github.com/your-repo/releases)
+1. Download the DMG file (`AITextVoice.dmg`) from the [Releases page](https://github.com/LorenzoNey/ai-text-voice/releases)
 2. Open the DMG and drag AITextVoice to your Applications folder
 3. **Important**: On first launch, macOS will block the app. Go to **System Preferences > Security & Privacy > General** and click "Open Anyway"
 4. **Critical Step - Accessibility Permission**:
@@ -82,7 +82,7 @@ The application prioritizes **local AI processing** for privacy and speed, with 
 
 ### Linux
 
-1. Download the AppImage file (`AITextVoice.AppImage`) from the [Releases page](https://github.com/your-repo/releases)
+1. Download the AppImage file (`AITextVoice.AppImage`) from the [Releases page](https://github.com/LorenzoNey/ai-text-voice/releases)
 2. Make it executable:
    ```bash
    chmod +x AITextVoice.AppImage
@@ -677,7 +677,7 @@ Whisper models support 90+ languages. Use language-specific models (e.g., `base.
 
 ## Getting Help
 
-- **GitHub Issues**: Report bugs or request features at [github.com/your-repo/issues](https://github.com/your-repo/issues)
+- **GitHub Issues**: Report bugs or request features at [github.com/LorenzoNey/ai-text-voice/issues](https://github.com/LorenzoNey/ai-text-voice/issues)
 - **Documentation**: This guide and README are available in the repository
 
 ---

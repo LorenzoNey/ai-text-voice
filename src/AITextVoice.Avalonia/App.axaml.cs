@@ -481,7 +481,7 @@ public partial class App : Application
         aboutItem.Click += (_, _) => SafeExecute(() => viewModel.OpenAboutCommand.Execute(null), "Open About");
         _trayMenu.Items.Add(aboutItem);
 
-        var helpItem = new NativeMenuItem("Help / User Guide");
+        var helpItem = new NativeMenuItem("Help");
         helpItem.Click += (_, _) => SafeExecute(() => OpenUserGuide(), "Open Help");
         _trayMenu.Items.Add(helpItem);
 
@@ -514,7 +514,7 @@ public partial class App : Application
 
     private void OpenUserGuide()
     {
-        const string userGuideUrl = "https://github.com/LorenzoNey/aitextvoice/blob/main/docs/USER_GUIDE.md";
+        const string userGuideUrl = "https://github.com/LorenzoNey/ai-text-voice/blob/main/docs/USER_GUIDE.md";
         try
         {
             var psi = new System.Diagnostics.ProcessStartInfo
