@@ -76,3 +76,6 @@ installer/output/
 .claude/
 
 nul
+
+# Landing page (separate repo)
+landing-page/
