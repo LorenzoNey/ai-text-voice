@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AITextVoice
+Comment=AI-powered speech-to-text and text-to-speech application
+Exec=AITextVoice
+Icon=aitextvoice
+Categories=AudioVideo;Audio;Utility;
+Terminal=false
+StartupNotify=true

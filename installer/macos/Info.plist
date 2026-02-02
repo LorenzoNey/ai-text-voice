@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.wisprclone.app</string>
+    <string>com.aitextvoice.app</string>
     <key>CFBundleName</key>
-    <string>WisprClone</string>
+    <string>AITextVoice</string>
     <key>CFBundleDisplayName</key>
-    <string>WisprClone</string>
+    <string>AITextVoice</string>
     <key>CFBundleVersion</key>
     <string>2.0.0</string>
     <key>CFBundleShortVersionString</key>
     <string>2.0.0</string>
     <key>CFBundleExecutable</key>
-    <string>WisprClone</string>
+    <string>AITextVoice</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>
@@ -21,8 +21,8 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>WisprClone needs access to your microphone for speech-to-text transcription.</string>
+    <string>AITextVoice needs access to your microphone for speech-to-text transcription.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>WisprClone needs accessibility access to detect global keyboard shortcuts.</string>
+    <string>AITextVoice needs accessibility access to detect global keyboard shortcuts.</string>
 </dict>
 </plist>

@@ -1,0 +1,980 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="620"
+        x:Class="AITextVoice.Views.SettingsWindow"
+        Title="AITextVoice Settings"
+        Width="480" Height="620"
+        MinWidth="400" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        CanResize="True"
+        Background="#FF1E1E1E">
+
+    <Window.Styles>
+        <!-- Card container -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FF252525"/>
+            <Setter Property="BorderBrush" Value="#FF333333"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Card title -->
+        <Style Selector="TextBlock.cardTitle">
+            <Setter Property="Foreground" Value="#FFE0E0E0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Inline input row -->
+        <Style Selector="StackPanel.inputRow">
+            <Setter Property="Orientation" Value="Horizontal"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <!-- Label style -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- Inline label style (for inline inputs) -->
+        <Style Selector="TextBlock.inlineLabel">
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Info text style -->
+        <Style Selector="TextBlock.info">
+            <Setter Property="Foreground" Value="#FF808080"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+
+        <!-- TextBox style -->
+        <Style Selector="TextBox.settings">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style Selector="TextBox.settings:focus">
+            <Setter Property="BorderBrush" Value="#FF3391FF"/>
+        </Style>
+        <Style Selector="TextBox.settings:pointerover">
+            <Setter Property="BorderBrush" Value="#FF505050"/>
+        </Style>
+
+        <!-- ComboBox style -->
+        <Style Selector="ComboBox.settings">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,0,0,0"/>
+        </Style>
+        <Style Selector="ComboBox.settings:pointerover">
+            <Setter Property="BorderBrush" Value="#FF505050"/>
+        </Style>
+        <Style Selector="ComboBox.settings:focus">
+            <Setter Property="BorderBrush" Value="#FF3391FF"/>
+        </Style>
+
+        <!-- CheckBox style -->
+        <Style Selector="CheckBox.settings">
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+        </Style>
+
+        <!-- Primary button style -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#FF3391FF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#FF4DA3FF"/>
+        </Style>
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#FF2878D4"/>
+        </Style>
+
+        <!-- Secondary button style -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#FF3D3D3D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="#FF4D4D4D"/>
+        </Style>
+        <Style Selector="Button.secondary:pressed">
+            <Setter Property="Background" Value="#FF353535"/>
+        </Style>
+
+        <!-- Danger button style -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#FF3D3D3D"/>
+            <Setter Property="Foreground" Value="#FFFF6B6B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FFFF6B6B"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover">
+            <Setter Property="Background" Value="#FFFF6B6B"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pressed">
+            <Setter Property="Background" Value="#FFCC5555"/>
+        </Style>
+
+        <!-- TabControl style -->
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FFB0B0B0"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#FF3391FF"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="2,2,2,8">
+        <TabControl>
+            <!-- General Tab -->
+            <TabItem Header="General">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                    <StackPanel Margin="2,0,2,0">
+                        <!-- Language Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Language" Classes="cardTitle"/>
+
+                                <TextBlock Text="Recognition Language" Classes="label"/>
+                                <ComboBox x:Name="LanguageComboBox" Classes="settings" Width="250" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="English (US)" Tag="en-US" />
+                                    <ComboBoxItem Content="English (UK)" Tag="en-GB"/>
+                                    <ComboBoxItem Content="Romanian" Tag="ro-RO"/>
+                                    <ComboBoxItem Content="Spanish" Tag="es-ES"/>
+                                    <ComboBoxItem Content="French" Tag="fr-FR"/>
+                                    <ComboBoxItem Content="German" Tag="de-DE"/>
+                                    <ComboBoxItem Content="Italian" Tag="it-IT"/>
+                                    <ComboBoxItem Content="Portuguese" Tag="pt-BR"/>
+                                    <ComboBoxItem Content="Chinese (Simplified)" Tag="zh-CN"/>
+                                    <ComboBoxItem Content="Japanese" Tag="ja-JP"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Behavior Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Behavior" Classes="cardTitle"/>
+
+                                <CheckBox x:Name="AutoCopyCheckBox"
+                                          Content="Copy transcription to clipboard"
+                                          Classes="settings"
+                                          Margin="0"/>
+
+                                <CheckBox x:Name="AutoPasteCheckBox"
+                                          Content="Insert transcription at cursor"
+                                          Classes="settings"/>
+
+                                <CheckBox x:Name="StartMinimizedCheckBox"
+                                          Content="Start with overlay hidden"
+                                          Classes="settings"/>
+
+                                <CheckBox x:Name="RunOnStartupCheckBox"
+                                          Content="Run on Windows startup"
+                                          Classes="settings"/>
+
+                                <CheckBox x:Name="AutoCheckUpdatesCheckBox"
+                                          Content="Check for updates automatically"
+                                          Classes="settings"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- STT Tab -->
+            <TabItem Header="STT">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                    <StackPanel Margin="2,0,2,0">
+                        <!-- Speech-to-Text Provider Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Speech-to-Text Provider" Classes="cardTitle"/>
+
+                                <TextBlock Text="Select STT Provider" Classes="label"/>
+                                <ComboBox x:Name="SpeechProviderComboBox"
+                                          Classes="settings"
+                                          Width="250"
+                                          HorizontalAlignment="Left">
+                                    <!-- Items populated dynamically based on platform -->
+                                </ComboBox>
+
+                                <TextBlock x:Name="ProviderInfoText"
+                                           Text="Note: Changing the speech provider requires an app restart to take effect."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Azure Settings Panel (conditional) -->
+                        <Border x:Name="AzureSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Azure Speech Settings" Classes="cardTitle"/>
+
+                                <TextBlock Text="Subscription Key" Classes="label"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="AzureKeyTextBox" Classes="settings" Width="300" PasswordChar="*"/>
+                                    <Button x:Name="RevealAzureKeyButton"
+                                            Content="Show"
+                                            Classes="secondary"
+                                            Click="RevealAzureKeyButton_Click"
+                                            VerticalAlignment="Center"
+                                            Padding="12,8"
+                                            Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Region" Classes="label" Margin="0,12,0,6"/>
+                                <TextBox x:Name="AzureRegionTextBox" Classes="settings" Width="120" HorizontalAlignment="Left"/>
+
+                                <CheckBox x:Name="UseAzureFallbackCheckBox"
+                                          Content="Use Azure as fallback when offline recognition fails"
+                                          Classes="settings"
+                                          Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- OpenAI Settings Panel (conditional) -->
+                        <Border x:Name="OpenAISettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="OpenAI Whisper Settings" Classes="cardTitle"/>
+
+                                <TextBlock Text="API Key" Classes="label"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="OpenAIKeyTextBox" Classes="settings" Width="300" PasswordChar="*"/>
+                                    <Button x:Name="RevealOpenAIKeyButton"
+                                            Content="Show"
+                                            Classes="secondary"
+                                            Click="RevealOpenAIKeyButton_Click"
+                                            VerticalAlignment="Center"
+                                            Padding="12,8"
+                                            Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Used for Whisper batch API. Re-transcribes entire audio every 2s."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Faster-Whisper Settings Panel (conditional) -->
+                        <Border x:Name="FasterWhisperSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Faster-Whisper Settings" Classes="cardTitle"/>
+
+                                <StackPanel x:Name="FasterWhisperDownloadPanel" Margin="0,0,0,12">
+                                    <TextBlock x:Name="FasterWhisperWarningText"
+                                               Text="faster-whisper-xxl.exe not found."
+                                               Foreground="#FFFF6B6B"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button x:Name="DownloadFasterWhisperButton"
+                                                Content="Download (~1.5 GB)"
+                                                Classes="primary"
+                                                Click="DownloadFasterWhisperButton_Click"
+                                                Padding="12,6"/>
+                                        <TextBlock x:Name="FasterWhisperDownloadStatus"
+                                                   Text=""
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Margin="12,0,0,0"/>
+                                    </StackPanel>
+                                    <ProgressBar x:Name="FasterWhisperDownloadProgress"
+                                                 IsVisible="False"
+                                                 Value="0"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Height="4"
+                                                 Margin="0,8,0,0"
+                                                 Background="#FF404040"
+                                                 Foreground="#FF3391FF"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Model" Classes="label"/>
+                                <ComboBox x:Name="FasterWhisperModelComboBox" Classes="settings" Width="200" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="tiny" Tag="tiny"/>
+                                    <ComboBoxItem Content="base" Tag="base"/>
+                                    <ComboBoxItem Content="small" Tag="small"/>
+                                    <ComboBoxItem Content="medium" Tag="medium"/>
+                                    <ComboBoxItem Content="large-v3-turbo" Tag="large-v3-turbo" />
+                                    <ComboBoxItem Content="large-v3" Tag="large-v3"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Language" Classes="label" Margin="0,12,0,6"/>
+                                <ComboBox x:Name="FasterWhisperLanguageComboBox" Classes="settings" Width="200" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="Auto-detect" Tag="auto" />
+                                    <ComboBoxItem Content="English" Tag="en"/>
+                                    <ComboBoxItem Content="Romanian" Tag="ro"/>
+                                    <ComboBoxItem Content="Spanish" Tag="es"/>
+                                    <ComboBoxItem Content="French" Tag="fr"/>
+                                    <ComboBoxItem Content="German" Tag="de"/>
+                                    <ComboBoxItem Content="Italian" Tag="it"/>
+                                    <ComboBoxItem Content="Portuguese" Tag="pt"/>
+                                    <ComboBoxItem Content="Chinese" Tag="zh"/>
+                                    <ComboBoxItem Content="Japanese" Tag="ja"/>
+                                </ComboBox>
+
+                                <CheckBox x:Name="FasterWhisperGpuCheckBox"
+                                          Content="Use GPU acceleration (CUDA)"
+                                          Classes="settings"
+                                          IsChecked="True"
+                                          Margin="0,12,0,0"/>
+
+                                <StackPanel x:Name="FasterWhisperGpuSettingsPanel" Margin="20,8,0,0">
+                                    <StackPanel Classes="inputRow" Margin="0">
+                                        <TextBlock Text="GPU Device ID" Classes="inlineLabel" Width="100"/>
+                                        <TextBox x:Name="FasterWhisperDeviceIdTextBox" Classes="settings" Width="60" Text="0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Compute Type" Classes="label" Margin="0,12,0,6"/>
+                                    <ComboBox x:Name="FasterWhisperComputeTypeComboBox" Classes="settings" Width="150" HorizontalAlignment="Left">
+                                        <ComboBoxItem Content="float16" Tag="float16" />
+                                        <ComboBoxItem Content="float32" Tag="float32"/>
+                                        <ComboBoxItem Content="int8" Tag="int8"/>
+                                        <ComboBoxItem Content="int8_float16" Tag="int8_float16"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <CheckBox x:Name="FasterWhisperDiarizationCheckBox"
+                                          Content="Enable speaker diarization"
+                                          Classes="settings"
+                                          Margin="0,12,0,0"/>
+
+                                <TextBlock Text="Re-transcribes every 2 seconds for pseudo-streaming. Requires faster-whisper-xxl."
+                                           Classes="info"/>
+                                <TextBlock Text="Note: The first transcription will be slow as the model downloads automatically (~3-5 GB depending on model size)."
+                                           Foreground="#FFFFCC00"
+                                           FontSize="11"
+                                           FontStyle="Italic"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Whisper Server Settings Panel (conditional) -->
+                        <Border x:Name="WhisperServerSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Whisper Server Settings" Classes="cardTitle"/>
+
+                                <StackPanel x:Name="WhisperServerDownloadPanel" Margin="0,0,0,12">
+                                    <TextBlock x:Name="WhisperServerWarningText"
+                                               Text="whisper.cpp server not found."
+                                               Foreground="#FFFF6B6B"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button x:Name="DownloadWhisperServerButton"
+                                                Content="Download (~460 MB)"
+                                                Classes="primary"
+                                                Click="DownloadWhisperServerButton_Click"
+                                                Padding="12,6"/>
+                                        <TextBlock x:Name="WhisperServerDownloadStatus"
+                                                   Text=""
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Margin="12,0,0,0"/>
+                                    </StackPanel>
+                                    <ProgressBar x:Name="WhisperServerDownloadProgress"
+                                                 IsVisible="False"
+                                                 Value="0"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Height="4"
+                                                 Margin="0,8,0,0"
+                                                 Background="#FF404040"
+                                                 Foreground="#FF3391FF"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Model" Classes="label"/>
+                                <ComboBox x:Name="WhisperServerModelComboBox"
+                                          Classes="settings"
+                                          Width="220"
+                                          HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="tiny.en (~75 MB)" Tag="tiny.en"/>
+                                    <ComboBoxItem Content="base.en (~142 MB)" Tag="base.en" />
+                                    <ComboBoxItem Content="small.en (~466 MB)" Tag="small.en"/>
+                                    <ComboBoxItem Content="medium.en (~1.5 GB)" Tag="medium.en"/>
+                                    <ComboBoxItem Content="large-v3 (~3 GB)" Tag="large-v3"/>
+                                    <ComboBoxItem Content="large-v3-turbo (~1.6 GB)" Tag="large-v3-turbo"/>
+                                </ComboBox>
+
+                                <StackPanel x:Name="WhisperServerModelDownloadPanel" Margin="0,8,0,0">
+                                    <TextBlock x:Name="WhisperServerModelStatusText"
+                                               Text="Model not downloaded"
+                                               Foreground="#FFFF6B6B"
+                                               FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button x:Name="DownloadWhisperModelButton"
+                                                Content="Download Model"
+                                                Classes="primary"
+                                                Click="DownloadWhisperModelButton_Click"
+                                                Padding="12,6"/>
+                                        <TextBlock x:Name="WhisperModelDownloadStatus"
+                                                   Text=""
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Margin="12,0,0,0"/>
+                                    </StackPanel>
+                                    <ProgressBar x:Name="WhisperModelDownloadProgress"
+                                                 IsVisible="False"
+                                                 Value="0"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Height="4"
+                                                 Margin="0,8,0,0"
+                                                 Background="#FF404040"
+                                                 Foreground="#FF3391FF"/>
+                                </StackPanel>
+
+                                <StackPanel Classes="inputRow" Margin="0,12,0,0">
+                                    <TextBlock Text="Server Port" Classes="inlineLabel" Width="100"/>
+                                    <TextBox x:Name="WhisperServerPortTextBox" Classes="settings" Width="80" Text="8178"/>
+                                </StackPanel>
+
+                                <!-- Streaming Settings -->
+                                <Border Height="1" Background="#FF333333" Margin="0,16,0,12"/>
+
+                                <CheckBox x:Name="WhisperStreamingEnabledCheckBox"
+                                          Content="Enable real-time streaming (shows text while speaking)"
+                                          Classes="settings"
+                                          IsChecked="True"
+                                          Margin="0"/>
+
+                                <StackPanel x:Name="WhisperStreamingSettingsPanel" Margin="20,8,0,0">
+                                    <StackPanel Classes="inputRow" Margin="0">
+                                        <TextBlock Text="Window size" Classes="inlineLabel" Width="100"/>
+                                        <Slider x:Name="WhisperWindowSlider"
+                                                Width="150"
+                                                Minimum="5"
+                                                Maximum="15"
+                                                Value="8"
+                                                TickFrequency="1"
+                                                IsSnapToTickEnabled="True"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="WhisperWindowValueText"
+                                                   Text="8 seconds"
+                                                   Classes="inlineLabel"
+                                                   Width="70"
+                                                   Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Smaller = faster updates, larger = more context for accuracy"
+                                               Classes="info"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Keeps model loaded in GPU memory for instant (~1 second) transcription. The server starts automatically when needed."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TTS Tab -->
+            <TabItem Header="TTS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                    <StackPanel Margin="2,0,2,0">
+                        <!-- Text-to-Speech Provider Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Text-to-Speech Provider" Classes="cardTitle"/>
+
+                                <TextBlock Text="Select TTS Provider" Classes="label"/>
+                                <ComboBox x:Name="TtsProviderComboBox"
+                                          Classes="settings"
+                                          Width="250"
+                                          HorizontalAlignment="Left">
+                                    <!-- Items populated dynamically based on platform -->
+                                </ComboBox>
+
+                                <TextBlock x:Name="TtsProviderInfoText"
+                                           Text="Shift+Shift to read clipboard text aloud."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- TTS Voice Settings Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Voice Settings" Classes="cardTitle"/>
+
+                                <StackPanel Classes="inputRow" Margin="0">
+                                    <TextBlock Text="Speech Rate" Classes="inlineLabel" Width="100"/>
+                                    <Slider x:Name="TtsRateSlider"
+                                            Width="150"
+                                            Minimum="0.5"
+                                            Maximum="2.0"
+                                            Value="1.0"
+                                            TickFrequency="0.1"
+                                            IsSnapToTickEnabled="True"
+                                            VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TtsRateValueText"
+                                               Text="1.0x"
+                                               Classes="inlineLabel"
+                                               Width="40"
+                                               Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Classes="inputRow">
+                                    <TextBlock Text="Volume" Classes="inlineLabel" Width="100"/>
+                                    <Slider x:Name="TtsVolumeSlider"
+                                            Width="150"
+                                            Minimum="0"
+                                            Maximum="100"
+                                            Value="100"
+                                            TickFrequency="10"
+                                            IsSnapToTickEnabled="True"
+                                            VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TtsVolumeValueText"
+                                               Text="100%"
+                                               Classes="inlineLabel"
+                                               Width="40"
+                                               Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- OpenAI TTS Settings Panel (conditional) -->
+                        <Border x:Name="OpenAITtsSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="OpenAI TTS Settings" Classes="cardTitle"/>
+
+                                <TextBlock Text="Voice" Classes="label"/>
+                                <ComboBox x:Name="OpenAITtsVoiceComboBox" Classes="settings" Width="180" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="Alloy" Tag="alloy" />
+                                    <ComboBoxItem Content="Echo" Tag="echo"/>
+                                    <ComboBoxItem Content="Fable" Tag="fable"/>
+                                    <ComboBoxItem Content="Onyx" Tag="onyx"/>
+                                    <ComboBoxItem Content="Nova" Tag="nova"/>
+                                    <ComboBoxItem Content="Shimmer" Tag="shimmer"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Model" Classes="label" Margin="0,12,0,6"/>
+                                <ComboBox x:Name="OpenAITtsModelComboBox" Classes="settings" Width="180" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="TTS-1 (Standard)" Tag="tts-1" />
+                                    <ComboBoxItem Content="TTS-1-HD (High Quality)" Tag="tts-1-hd"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Uses same API key as OpenAI Whisper (STT tab)."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Azure TTS Settings Panel (conditional) -->
+                        <Border x:Name="AzureTtsSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Azure TTS Settings" Classes="cardTitle"/>
+
+                                <TextBlock Text="Voice" Classes="label"/>
+                                <ComboBox x:Name="AzureTtsVoiceComboBox" Classes="settings" Width="250" HorizontalAlignment="Left">
+                                    <ComboBoxItem Content="Jenny (US)" Tag="en-US-JennyNeural" />
+                                    <ComboBoxItem Content="Guy (US)" Tag="en-US-GuyNeural"/>
+                                    <ComboBoxItem Content="Aria (US)" Tag="en-US-AriaNeural"/>
+                                    <ComboBoxItem Content="Davis (US)" Tag="en-US-DavisNeural"/>
+                                    <ComboBoxItem Content="Sonia (UK)" Tag="en-GB-SoniaNeural"/>
+                                    <ComboBoxItem Content="Ryan (UK)" Tag="en-GB-RyanNeural"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Uses same Azure credentials as Speech Recognition (STT tab)."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Piper TTS Settings Panel (conditional) -->
+                        <Border x:Name="PiperTtsSettingsPanel" Classes="card" IsVisible="False">
+                            <StackPanel>
+                                <TextBlock Text="Piper TTS Settings" Classes="cardTitle"/>
+
+                                <StackPanel x:Name="PiperDownloadPanel" Margin="0,0,0,12">
+                                    <TextBlock x:Name="PiperTtsWarningText"
+                                               Text="piper.exe not found."
+                                               Foreground="#FFFF6B6B"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button x:Name="DownloadPiperButton"
+                                                Content="Download Piper (~22 MB)"
+                                                Classes="primary"
+                                                Click="DownloadPiperButton_Click"
+                                                Padding="12,6"/>
+                                        <TextBlock x:Name="PiperDownloadStatus"
+                                                   Text=""
+                                                   Foreground="#FF808080"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Margin="12,0,0,0"/>
+                                    </StackPanel>
+                                    <ProgressBar x:Name="PiperDownloadProgress"
+                                                 IsVisible="False"
+                                                 Value="0"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Height="4"
+                                                 Margin="0,8,0,0"
+                                                 Background="#FF404040"
+                                                 Foreground="#FF3391FF"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Installed Voice" Classes="label"/>
+                                <ComboBox x:Name="PiperVoiceComboBox" Classes="settings" Width="280" HorizontalAlignment="Left">
+                                    <!-- Populated dynamically from piper/voices/*.onnx -->
+                                </ComboBox>
+
+                                <!-- Voice Browser Section -->
+                                <Border Height="1" Background="#FF333333" Margin="0,16,0,12"/>
+
+                                <TextBlock Text="Download More Voices" Classes="label" FontWeight="SemiBold"/>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="Language:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <ComboBox x:Name="PiperLanguageFilterComboBox"
+                                              Classes="settings"
+                                              Width="150">
+                                        <ComboBoxItem Content="English" Tag="en" />
+                                        <ComboBoxItem Content="German" Tag="de"/>
+                                        <ComboBoxItem Content="Spanish" Tag="es"/>
+                                        <ComboBoxItem Content="French" Tag="fr"/>
+                                        <ComboBoxItem Content="Italian" Tag="it"/>
+                                        <ComboBoxItem Content="Portuguese" Tag="pt"/>
+                                        <ComboBoxItem Content="Romanian" Tag="ro"/>
+                                        <ComboBoxItem Content="Russian" Tag="ru"/>
+                                        <ComboBoxItem Content="Chinese" Tag="zh"/>
+                                        <ComboBoxItem Content="Japanese" Tag="ja"/>
+                                        <ComboBoxItem Content="All Languages" Tag="all"/>
+                                    </ComboBox>
+                                    <Button x:Name="RefreshVoiceCatalogButton"
+                                            Content="Refresh"
+                                            Classes="secondary"
+                                            Click="RefreshVoiceCatalogButton_Click"
+                                            Padding="8,4"
+                                            Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <ListBox x:Name="PiperVoiceCatalogList"
+                                         Height="150"
+                                         Margin="0,8,0,0"
+                                         Background="#FF2A2A2A"
+                                         BorderBrush="#FF404040"
+                                         BorderThickness="1">
+                                    <!-- Populated dynamically from voice catalog -->
+                                </ListBox>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button x:Name="DownloadSelectedVoiceButton"
+                                            Content="Download Selected Voice"
+                                            Classes="primary"
+                                            Click="DownloadSelectedVoiceButton_Click"
+                                            Padding="12,6"
+                                            IsEnabled="False"/>
+                                    <TextBlock x:Name="VoiceDownloadStatus"
+                                               Text=""
+                                               Foreground="#FF808080"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"
+                                               Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <ProgressBar x:Name="VoiceDownloadProgress"
+                                             IsVisible="False"
+                                             Value="0"
+                                             Minimum="0"
+                                             Maximum="100"
+                                             Height="4"
+                                             Margin="0,8,0,0"
+                                             Background="#FF404040"
+                                             Foreground="#FF3391FF"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Advanced Tab -->
+            <TabItem Header="Advanced">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                    <StackPanel Margin="2,0,2,0">
+                        <!-- Hotkey Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Hotkey Configuration" Classes="cardTitle"/>
+
+                                <!-- STT Hotkey Selection -->
+                                <TextBlock Text="Speech-to-Text Hotkey" Classes="label"/>
+                                <ComboBox x:Name="SttHotkeyPresetComboBox" Classes="settings" Width="280" Margin="0,0,0,12">
+                                    <!-- Double-tap presets (safest - no OS conflicts) -->
+                                    <ComboBoxItem Content="Ctrl + Ctrl (double-tap)" Tag="DoubleTap:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Shift + Shift (double-tap)" Tag="DoubleTap:Shift::400:200:1000"/>
+                                    <ComboBoxItem Content="Alt + Alt (double-tap)" Tag="DoubleTap:Alt::400:200:1000"/>
+                                    <!-- Modifier combinations -->
+                                    <ComboBoxItem Content="Ctrl + Space" Tag="Combination:Space:Ctrl:400:200:1000"/>
+                                    <!-- Function keys (F9-F12 commonly available) -->
+                                    <ComboBoxItem Content="F9 (single press)" Tag="SinglePress:F9::400:200:1000"/>
+                                    <ComboBoxItem Content="F10 (single press)" Tag="SinglePress:F10::400:200:1000"/>
+                                    <!-- Extended function keys (F13-F24 rarely used) -->
+                                    <ComboBoxItem Content="F13 (single press)" Tag="SinglePress:F13::400:200:1000"/>
+                                    <ComboBoxItem Content="F14 (single press)" Tag="SinglePress:F14::400:200:1000"/>
+                                    <ComboBoxItem Content="F15 (single press)" Tag="SinglePress:F15::400:200:1000"/>
+                                    <!-- Hold-to-activate -->
+                                    <ComboBoxItem Content="Hold Ctrl (1 second)" Tag="Hold:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Hold Shift (1 second)" Tag="Hold:Shift::400:200:1000"/>
+                                </ComboBox>
+
+                                <!-- TTS Hotkey Selection -->
+                                <TextBlock Text="Text-to-Speech Hotkey" Classes="label"/>
+                                <ComboBox x:Name="TtsHotkeyPresetComboBox" Classes="settings" Width="280" Margin="0,0,0,12">
+                                    <!-- Double-tap presets (safest - no OS conflicts) -->
+                                    <ComboBoxItem Content="Ctrl + Ctrl (double-tap)" Tag="DoubleTap:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Shift + Shift (double-tap)" Tag="DoubleTap:Shift::400:200:1000"/>
+                                    <ComboBoxItem Content="Alt + Alt (double-tap)" Tag="DoubleTap:Alt::400:200:1000"/>
+                                    <!-- Modifier combinations -->
+                                    <ComboBoxItem Content="Ctrl + Space" Tag="Combination:Space:Ctrl:400:200:1000"/>
+                                    <!-- Function keys (F9-F12 commonly available) -->
+                                    <ComboBoxItem Content="F9 (single press)" Tag="SinglePress:F9::400:200:1000"/>
+                                    <ComboBoxItem Content="F10 (single press)" Tag="SinglePress:F10::400:200:1000"/>
+                                    <!-- Extended function keys (F13-F24 rarely used) -->
+                                    <ComboBoxItem Content="F13 (single press)" Tag="SinglePress:F13::400:200:1000"/>
+                                    <ComboBoxItem Content="F14 (single press)" Tag="SinglePress:F14::400:200:1000"/>
+                                    <ComboBoxItem Content="F15 (single press)" Tag="SinglePress:F15::400:200:1000"/>
+                                    <!-- Hold-to-activate -->
+                                    <ComboBoxItem Content="Hold Ctrl (1 second)" Tag="Hold:Ctrl::400:200:1000"/>
+                                    <ComboBoxItem Content="Hold Shift (1 second)" Tag="Hold:Shift::400:200:1000"/>
+                                </ComboBox>
+
+                                <!-- Conflict Warning -->
+                                <TextBlock x:Name="HotkeyConflictWarning"
+                                           Text="Warning: STT and TTS use the same hotkey."
+                                           Foreground="#FFFFCC00"
+                                           IsVisible="False"
+                                           Margin="0,0,0,12"/>
+
+                                <!-- Timing Settings (shown only for double-tap hotkeys) -->
+                                <StackPanel x:Name="DoubleTapTimingPanel" Margin="0,0,0,12">
+                                    <Border Height="1" Background="#FF333333" Margin="0,0,0,12"/>
+                                    <TextBlock Text="Double-Tap Timing" Classes="label" FontWeight="SemiBold"/>
+
+                                    <StackPanel Classes="inputRow" Margin="0,4,0,0">
+                                        <TextBlock Text="Tap interval" Classes="inlineLabel" Width="120"/>
+                                        <TextBox x:Name="DoubleTapIntervalTextBox" Classes="settings" Width="80"/>
+                                        <TextBlock Text="ms (max time between taps)" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <StackPanel Classes="inputRow">
+                                        <TextBlock Text="Max hold" Classes="inlineLabel" Width="120"/>
+                                        <TextBox x:Name="MaxKeyHoldTextBox" Classes="settings" Width="80"/>
+                                        <TextBlock Text="ms (longer = not a tap)" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Info text -->
+                                <TextBlock Text="Recommended: Double-tap hotkeys are safest and won't conflict with other apps. F13-F24 keys are ideal for single-press as they're rarely used by any software."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Recording Limits Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Recording Limits" Classes="cardTitle"/>
+
+                                <StackPanel Classes="inputRow" Margin="0">
+                                    <TextBlock Text="Max recording duration" Classes="inlineLabel" Width="140"/>
+                                    <TextBox x:Name="MaxRecordingDurationTextBox" Classes="settings" Width="100"/>
+                                    <TextBlock Text="seconds" Classes="inlineLabel" Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Recording will automatically stop after this duration (10-600 seconds)."
+                                           Classes="info"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Debugging Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Debugging" Classes="cardTitle"/>
+
+                                <CheckBox x:Name="EnableLoggingCheckBox"
+                                          Content="Enable logging"
+                                          Classes="settings"
+                                          Margin="0"/>
+                                <TextBlock Text="Logs are saved to %AppData%/AITextVoice"
+                                           Classes="info"
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Restore Defaults Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Reset Settings" Classes="cardTitle"/>
+
+                                <TextBlock Text="Restore all settings to their default values. This cannot be undone."
+                                           Classes="info"
+                                           Margin="0,0,0,12"/>
+
+                                <Button x:Name="RestoreDefaultsButton"
+                                        Content="Restore Defaults"
+                                        Classes="danger"
+                                        Click="RestoreDefaultsButton_Click"
+                                        HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- About Tab -->
+            <TabItem Header="About">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,4,0,0">
+                    <StackPanel Margin="2,0,2,0">
+                        <!-- App Info Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="AITextVoice" Classes="cardTitle" Margin="0,0,0,4"/>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Version:"
+                                               Foreground="#FFB0B0B0"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="VersionText"
+                                               Text="v2.0.0"
+                                               Foreground="#FFE0E0E0"
+                                               FontSize="12"
+                                               FontWeight="Medium"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <TextBlock Text="A cross-platform voice-to-text transcription tool."
+                                           Foreground="#FF808080"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Updates Card -->
+                        <Border Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Updates" Classes="cardTitle"/>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Current Version:"
+                                               Foreground="#FFB0B0B0"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="CurrentVersionText"
+                                               Text="v2.0.0"
+                                               Foreground="#FFE0E0E0"
+                                               FontSize="12"
+                                               FontWeight="Medium"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="UpdateAvailablePanel" IsVisible="False" Margin="0,0,0,8">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="New Version Available:"
+                                                   Foreground="#FF4CAF50"
+                                                   FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,8,0"/>
+                                        <TextBlock x:Name="NewVersionText"
+                                                   Text="v2.1.0"
+                                                   Foreground="#FF4CAF50"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <Button x:Name="DownloadUpdateButton"
+                                            Content="Download Update"
+                                            Classes="primary"
+                                            Click="DownloadUpdateButton_Click"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,4,0,0"/>
+
+                                    <ProgressBar x:Name="DownloadProgressBar"
+                                                 IsVisible="False"
+                                                 Value="0"
+                                                 Minimum="0"
+                                                 Maximum="100"
+                                                 Height="4"
+                                                 Margin="0,8,0,0"
+                                                 Background="#FF404040"
+                                                 Foreground="#FF4CAF50"/>
+
+                                    <TextBlock x:Name="DownloadStatusText"
+                                               Text=""
+                                               Classes="info"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="NoUpdatePanel" IsVisible="True" Margin="0,0,0,8">
+                                    <TextBlock Text="You have the latest version."
+                                               Foreground="#FF808080"
+                                               FontSize="11"/>
+                                </StackPanel>
+
+                                <Button x:Name="CheckForUpdatesButton"
+                                        Content="Check Now"
+                                        Classes="secondary"
+                                        Click="CheckForUpdatesButton_Click"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

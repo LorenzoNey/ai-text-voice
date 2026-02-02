@@ -1,4 +1,4 @@
-# WisprClone Installer Build Script
+# AITextVoice Installer Build Script
 # This script builds the application in Release mode and creates the installer
 #
 # Prerequisites:
@@ -20,7 +20,7 @@ $ErrorActionPreference = "Stop"
 # Get script directory
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootDir = Split-Path -Parent $scriptDir
-$projectDir = Join-Path $rootDir "src\WisprClone.Avalonia"
+$projectDir = Join-Path $rootDir "src\AITextVoice.Avalonia"
 $outputDir = Join-Path $scriptDir "output"
 
 # Inno Setup compiler path (default installation location)
@@ -64,7 +64,7 @@ function Find-DotNet {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  WisprClone Installer Build Script" -ForegroundColor Cyan
+Write-Host "  AITextVoice Installer Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -84,7 +84,7 @@ Write-Host "Found Inno Setup at: $innoCompiler" -ForegroundColor Green
 # Step 1: Build the application
 if (-not $SkipBuild) {
     Write-Host ""
-    Write-Host "Step 1: Building WisprClone (Release, self-contained)..." -ForegroundColor Cyan
+    Write-Host "Step 1: Building AITextVoice (Release, self-contained)..." -ForegroundColor Cyan
     Write-Host ""
 
     # Find dotnet SDK
@@ -151,10 +151,10 @@ if (-not (Test-Path $publishDir)) {
     exit 1
 }
 
-$exePath = Join-Path $publishDir "WisprClone.exe"
+$exePath = Join-Path $publishDir "AITextVoice.exe"
 if (-not (Test-Path $exePath)) {
     Write-Host ""
-    Write-Host "ERROR: WisprClone.exe not found in publish directory!" -ForegroundColor Red
+    Write-Host "ERROR: AITextVoice.exe not found in publish directory!" -ForegroundColor Red
     exit 1
 }
 
@@ -169,7 +169,7 @@ Write-Host ""
 Write-Host "Step 2: Creating installer with Inno Setup..." -ForegroundColor Cyan
 Write-Host ""
 
-$issFile = Join-Path $scriptDir "WisprClone.iss"
+$issFile = Join-Path $scriptDir "AITextVoice.iss"
 if (-not (Test-Path $issFile)) {
     Write-Host "ERROR: Inno Setup script not found at:" -ForegroundColor Red
     Write-Host $issFile -ForegroundColor White
@@ -191,7 +191,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Find the created installer
-$installer = Get-ChildItem -Path $outputDir -Filter "WisprClone-Setup-*.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$installer = Get-ChildItem -Path $outputDir -Filter "AITextVoice-Setup-*.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if ($installer) {
     $installerSize = [math]::Round($installer.Length / 1MB, 2)

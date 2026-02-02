@@ -1,6 +1,6 @@
 # Installer Resources
 
-Platform-specific installer resources for WisprClone.
+Platform-specific installer resources for AITextVoice.
 
 > **Note**: Releases are automatically built by GitHub Actions when a version tag is pushed. These resources are for manual/custom installer creation.
 
@@ -18,7 +18,7 @@ installer/
 Uses [Inno Setup](https://jrsoftware.org/isinfo.php) to create a Windows installer.
 
 ### Files
-- `WisprClone.iss` - Inno Setup script
+- `AITextVoice.iss` - Inno Setup script
 - `build-installer.ps1` - Build script
 - `download-innosetup.ps1` - Downloads Inno Setup
 
@@ -45,7 +45,7 @@ Resources for creating a macOS `.app` bundle.
 Resources for Linux desktop integration.
 
 ### Files
-- `WisprClone.desktop` - Desktop entry for application menus
+- `AITextVoice.desktop` - Desktop entry for application menus
 
 ### Installation
 Copy to `~/.local/share/applications/` or `/usr/share/applications/`

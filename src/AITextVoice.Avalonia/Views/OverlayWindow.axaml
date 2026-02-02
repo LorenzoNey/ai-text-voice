@@ -1,0 +1,342 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:AITextVoice.ViewModels"
+        xmlns:local="using:AITextVoice.Views"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="200"
+        x:Class="AITextVoice.Views.OverlayWindow"
+        x:DataType="vm:OverlayViewModel"
+        Title="AITextVoice"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        CanResize="False"
+        Width="420" MinHeight="100" MaxHeight="300"
+        SizeToContent="Height">
+
+    <Window.Resources>
+        <local:BoolToHighlightBrushConverter x:Key="BoolToHighlightBrushConverter"/>
+        <local:BoolToBackgroundBrushConverter x:Key="BoolToBackgroundBrushConverter"/>
+        <local:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+        <local:LineBreakWidthConverter x:Key="LineBreakWidthConverter"/>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Pulse animation for listening state -->
+        <Style Selector="Ellipse.listening">
+            <Style.Animations>
+                <Animation Duration="0:0:0.6" IterationCount="Infinite" PlaybackDirection="Alternate">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="1"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0.4"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Close button style -->
+        <Style Selector="Button.closeButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#80FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="Button.closeButton:pointerover">
+            <Setter Property="Background" Value="#30FFFFFF"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.closeButton:pointerover Path">
+            <Setter Property="Fill" Value="White"/>
+        </Style>
+
+        <!-- Ghost chip ComboBox style -->
+        <Style Selector="ComboBox.ghostChip">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#70FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="50"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+        <Style Selector="ComboBox.ghostChip:pointerover">
+            <Setter Property="Background" Value="#15FFFFFF"/>
+            <Setter Property="Foreground" Value="#90FFFFFF"/>
+        </Style>
+        <Style Selector="ComboBox.ghostChip:focus">
+            <Setter Property="Background" Value="#20FFFFFF"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- Waveform bar style -->
+        <Style Selector="Border.waveBar">
+            <Setter Property="Width" Value="3"/>
+            <Setter Property="Background" Value="#90FFFFFF"/>
+            <Setter Property="CornerRadius" Value="1.5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="1,0"/>
+        </Style>
+
+        <!-- TTS word highlight style -->
+        <Style Selector="TextBlock.ttsWord">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.ttsWord.current">
+            <Setter Property="Background" Value="#40FFFF00"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </Window.Styles>
+
+    <!-- Main Container with rounded corners and shadow -->
+    <Border x:Name="MainBorder"
+            CornerRadius="12"
+            Background="#E6202020"
+            BorderBrush="#40FFFFFF"
+            BorderThickness="1"
+            Margin="10"
+            ClipToBounds="True"
+            BoxShadow="0 0 15 0 #80000000">
+
+        <Grid RowDefinitions="Auto,Auto,Auto">
+            <!-- Header with status indicator (drag handle) -->
+            <Border Grid.Row="0"
+                    Padding="10,6"
+                    Background="#20FFFFFF"
+                    CornerRadius="12,12,0,0"
+                    PointerPressed="Border_PointerPressed"
+                    Cursor="SizeAll">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                    <!-- Status indicator (animated pulse when listening) -->
+                    <Ellipse Grid.Column="0"
+                             Width="10" Height="10"
+                             Fill="{Binding StatusColor}"
+                             Classes.listening="{Binding IsListening}"
+                             Margin="0,0,8,0"/>
+
+                    <!-- Waveform visualization (visible only when listening) -->
+                    <StackPanel x:Name="WaveformPanel"
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="0,0,8,0"
+                                Height="16"
+                                IsVisible="{Binding IsListening}">
+                        <Border Classes="waveBar" Height="{Binding AudioLevel1}"/>
+                        <Border Classes="waveBar" Height="{Binding AudioLevel2}"/>
+                        <Border Classes="waveBar" Height="{Binding AudioLevel3}"/>
+                        <Border Classes="waveBar" Height="{Binding AudioLevel4}"/>
+                        <Border Classes="waveBar" Height="{Binding AudioLevel5}"/>
+                    </StackPanel>
+
+                    <!-- Status text, elapsed time, and hotkey hints -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusText}"
+                                   Foreground="#CCFFFFFF"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+
+                        <!-- Elapsed time display (visible only when recording) -->
+                        <Border IsVisible="{Binding ShowElapsedTime}"
+                                Background="#30FFFFFF"
+                                CornerRadius="6"
+                                Padding="6,1"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ElapsedTimeDisplay}"
+                                       Foreground="#DDFFFFFF"
+                                       FontSize="10"
+                                       FontFamily="Consolas, Courier New, monospace"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- Hotkey hints (visible when idle) -->
+                        <TextBlock Text="STT: Ctrl+Ctrl | TTS: Shift+Shift"
+                                   Foreground="#50FFFFFF"
+                                   FontSize="9"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"
+                                   IsVisible="{Binding IsIdle}"/>
+                    </StackPanel>
+
+                    <!-- TTS Control buttons -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,4,0">
+                        <!-- TTS Run button (visible when NOT speaking TTS) -->
+                        <Button Classes="closeButton"
+                                Click="RunTtsButton_Click"
+                                ToolTip.Tip="Start TTS (read clipboard)"
+                                IsVisible="{Binding !IsTtsSpeaking}"
+                                Margin="0,0,2,0">
+                            <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                                  Fill="#80FFFFFF"
+                                  Stretch="Uniform"
+                                  Width="10" Height="10"/>
+                        </Button>
+
+                        <!-- Pause/Resume button (only shown if provider supports pause and TTS is speaking) -->
+                        <Button Classes="closeButton"
+                                Click="PauseResumeButton_Click"
+                                ToolTip.Tip="Pause/Resume TTS"
+                                IsVisible="{Binding ShowTtsPauseButton}"
+                                Margin="0,0,2,0">
+                            <Panel>
+                                <!-- Pause icon (visible when playing) -->
+                                <Path Data="M14,19H18V5H14M6,19H10V5H6V19Z"
+                                      Fill="#80FFFFFF"
+                                      Stretch="Uniform"
+                                      Width="10" Height="10"
+                                      IsVisible="{Binding !IsTtsPaused}"/>
+                                <!-- Play icon (visible when paused) -->
+                                <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z"
+                                      Fill="#80FFFFFF"
+                                      Stretch="Uniform"
+                                      Width="10" Height="10"
+                                      IsVisible="{Binding IsTtsPaused}"/>
+                            </Panel>
+                        </Button>
+
+                        <!-- Stop button (visible when TTS is speaking) -->
+                        <Button Classes="closeButton"
+                                Click="StopTtsButton_Click"
+                                ToolTip.Tip="Stop TTS"
+                                IsVisible="{Binding IsTtsSpeaking}">
+                            <Path Data="M18,18H6V6H18V18Z"
+                                  Fill="#80FFFFFF"
+                                  Stretch="Uniform"
+                                  Width="10" Height="10"/>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Header buttons -->
+                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+                        <!-- Copy button -->
+                        <Button x:Name="CopyButton"
+                                Classes="closeButton"
+                                Click="CopyButton_Click"
+                                ToolTip.Tip="Copy text to clipboard"
+                                Margin="0,0,2,0">
+                            <Path Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                                  Fill="#80FFFFFF"
+                                  Stretch="Uniform"
+                                  Width="10" Height="10"/>
+                        </Button>
+
+                        <!-- Close button -->
+                        <Button Content="×"
+                                Classes="closeButton"
+                                Click="CloseButton_Click"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                ToolTip.Tip="Hide overlay"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Transcription text area (STT mode) -->
+            <ScrollViewer x:Name="TranscriptionScrollViewer"
+                          Grid.Row="1"
+                          IsVisible="{Binding !IsTtsSpeaking}"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          MinHeight="30"
+                          MaxHeight="200">
+                <TextBlock x:Name="TranscriptionTextBlock"
+                           Text="{Binding TranscriptionText}"
+                           TextWrapping="Wrap"
+                           Foreground="White"
+                           FontSize="13"
+                           Padding="14,6,14,8"/>
+            </ScrollViewer>
+
+            <!-- TTS word display area with highlighting -->
+            <ScrollViewer x:Name="TtsScrollViewer"
+                          Grid.Row="1"
+                          IsVisible="{Binding IsTtsSpeaking}"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          MinHeight="30"
+                          MaxHeight="200">
+                <Border Padding="14,6,14,30">
+                    <ItemsControl x:Name="TtsWordDisplay"
+                                  ItemsSource="{Binding TtsWords}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TtsWordViewModel">
+                                <Border Width="{Binding IsLineBreak, Converter={StaticResource LineBreakWidthConverter}}"
+                                        Height="{Binding IsLineBreak, Converter={StaticResource LineBreakWidthConverter}, ConverterParameter=height}">
+                                    <TextBlock Text="{Binding Text}"
+                                               Foreground="{Binding IsCurrentWord, Converter={StaticResource BoolToHighlightBrushConverter}}"
+                                               Background="{Binding IsCurrentWord, Converter={StaticResource BoolToBackgroundBrushConverter}}"
+                                               FontWeight="{Binding IsCurrentWord, Converter={StaticResource BoolToFontWeightConverter}}"
+                                               FontSize="13"
+                                               Padding="0,2"
+                                               IsVisible="{Binding !IsLineBreak}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </ScrollViewer>
+
+            <!-- Footer with provider selectors -->
+            <Border Grid.Row="2"
+                    Padding="8,3,8,4"
+                    Background="#15000000"
+                    CornerRadius="0,0,12,12">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- STT Provider selector -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="STT:"
+                                   Foreground="#50FFFFFF"
+                                   FontSize="9"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,3,0"/>
+                        <ComboBox Classes="ghostChip"
+                                  ItemsSource="{Binding AvailableProviders}"
+                                  SelectedItem="{Binding SelectedProvider}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  DropDownClosed="ComboBox_DropDownClosed"
+                                  ToolTip.Tip="Speech-to-Text Provider"/>
+                    </StackPanel>
+
+                    <!-- Spacer -->
+                    <Border Grid.Column="1"/>
+
+                    <!-- TTS Provider selector -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="TTS:"
+                                   Foreground="#50FFFFFF"
+                                   FontSize="9"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,3,0"/>
+                        <ComboBox Classes="ghostChip"
+                                  ItemsSource="{Binding AvailableTtsProviders}"
+                                  SelectedItem="{Binding SelectedTtsProvider}"
+                                  DropDownOpened="ComboBox_DropDownOpened"
+                                  DropDownClosed="ComboBox_DropDownClosed"
+                                  ToolTip.Tip="Text-to-Speech Provider"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

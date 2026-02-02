@@ -1,16 +1,17 @@
-# WisprClone
+# AITextVoice
 
-A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **Ctrl+Ctrl** (double-tap) to start/stop speech recognition, and the transcribed text is automatically copied to your clipboard.
+A **cross-platform** AI-powered speech-to-text and text-to-speech application. Press **Ctrl+Ctrl** (double-tap) for speech-to-text or **Shift+Shift** for text-to-speech.
 
-[![Release](https://github.com/LorenzoNey/wispr-clone/actions/workflows/release.yml/badge.svg)](https://github.com/LorenzoNey/wispr-clone/actions/workflows/release.yml)
-[![Latest Version](https://img.shields.io/github/v/release/LorenzoNey/wispr-clone)](https://github.com/LorenzoNey/wispr-clone/releases/latest)
+[![Release](https://github.com/LorenzoNey/aitextvoice/actions/workflows/release.yml/badge.svg)](https://github.com/LorenzoNey/aitextvoice/actions/workflows/release.yml)
+[![Latest Version](https://img.shields.io/github/v/release/LorenzoNey/aitextvoice)](https://github.com/LorenzoNey/aitextvoice/releases/latest)
 
 ## Features
 
 - **Cross-Platform**: Runs on Windows, macOS, and Linux
-- **Multiple Speech Providers**: Choose from Windows offline recognition (Windows only), Azure Speech Service, or OpenAI Whisper
+- **Speech-to-Text (STT)**: Multiple providers including Windows offline, Azure Speech, OpenAI Whisper, and local Faster-Whisper
+- **Text-to-Speech (TTS)**: Read clipboard text aloud with providers like Windows SAPI, Azure, OpenAI, and Piper
 - **Floating Overlay**: Semi-transparent overlay window showing real-time transcription with auto-scroll
-- **Global Hotkey**: Double-tap Ctrl key to toggle speech recognition from anywhere
+- **Global Hotkeys**: Customizable hotkeys for STT (Ctrl+Ctrl) and TTS (Shift+Shift)
 - **System Tray**: Runs in the background with dynamic tray icon showing current state
 - **Auto-Clipboard**: Automatically copies transcribed text to clipboard when done
 - **Insert at Cursor**: Optionally paste transcription directly into the active application
@@ -18,31 +19,31 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 - **Recording Safety**: Configurable maximum recording duration to prevent forgotten recordings
 - **Update Notifications**: Red dot indicator on tray icon when updates are available
 - **Optional Logging**: Debug logging to help troubleshoot issues (toggleable without restart)
-- **Tabbed Settings**: Clean, organized settings interface with General, Advanced, and About tabs
+- **Tabbed Settings**: Clean, organized settings interface with General, STT, TTS, and Advanced tabs
 
 ## Downloads
 
-> **[Download Latest Release](https://github.com/LorenzoNey/wispr-clone/releases/latest)**
+> **[Download Latest Release](https://github.com/LorenzoNey/aitextvoice/releases/latest)**
 
 | Platform | Architecture | Download |
 |----------|--------------|----------|
-| Windows | x64 | [WisprClone-Setup.exe](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| macOS | Apple Silicon | [WisprClone-macOS-arm64.dmg](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
-| Linux | x64 | [WisprClone-Linux-x64.AppImage](https://github.com/LorenzoNey/wispr-clone/releases/latest) |
+| Windows | x64 | [AITextVoice-Setup.exe](https://github.com/LorenzoNey/aitextvoice/releases/latest) |
+| macOS | Apple Silicon | [AITextVoice-macOS-arm64.dmg](https://github.com/LorenzoNey/aitextvoice/releases/latest) |
+| Linux | x64 | [AITextVoice-Linux-x64.AppImage](https://github.com/LorenzoNey/aitextvoice/releases/latest) |
 
 ## Installation
 
 ### Windows
 
 1. Download the latest Windows release from the [Downloads](#downloads) section above
-2. Extract the ZIP archive
-3. Run `WisprClone.exe`
+2. Run the installer `AITextVoice-Setup.exe`
+3. Follow the installation prompts
 
 ### macOS
 
 1. Download the latest macOS release (Apple Silicon or Intel) from the [Downloads](#downloads) section
-2. Extract: `tar -xzf WisprClone-macOS-*.tar.gz`
-3. Run: `./WisprClone-macOS-*/WisprClone`
+2. Open the DMG file and drag AITextVoice to Applications
+3. On first launch, grant required permissions
 
 **Important**: On first launch, macOS will require you to grant:
 - **Accessibility** permission: System Preferences > Security & Privacy > Privacy > Accessibility
@@ -51,15 +52,15 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 ### Linux
 
 1. Download the latest Linux release from the [Downloads](#downloads) section
-2. Extract: `tar -xzf WisprClone-Linux-*.tar.gz`
-3. Run: `./WisprClone-Linux-*/WisprClone`
+2. Make it executable: `chmod +x AITextVoice-*.AppImage`
+3. Run: `./AITextVoice-*.AppImage`
 
 **Note**: Global keyboard hooks require X11. Wayland support is limited.
 
 ## Requirements
 
 ### All Platforms
-- Microphone
+- Microphone (for STT)
 - For cloud recognition:
   - Azure Speech Service subscription, or
   - OpenAI API key
@@ -76,28 +77,33 @@ A **cross-platform** speech-to-text application inspired by Wispr Flow. Press **
 | Offline (System.Speech) | Yes | No | No | Yes |
 | Azure Speech Service | Yes | Yes | Yes | Yes |
 | OpenAI Whisper (Batch) | Yes | Yes | Yes | No* |
-| Hybrid (Offline + Azure) | Yes | No | No | Yes |
+| Faster-Whisper (Local) | Yes | No | No | Yes |
+| Whisper Server (Local) | Yes | No | No | Yes |
 
 \* Whisper re-transcribes entire audio every 2 seconds (pseudo-streaming)
 
-### Cost Comparison
+### TTS Provider Availability
 
-| Provider | Cost | Notes |
-|----------|------|-------|
-| **Offline (Windows)** | Free | Uses built-in Windows speech recognition |
-| **Azure Speech Service** | ~$0.017/min | Pay-as-you-go, first 5 hours/month free |
-| **OpenAI Whisper** | ~$0.006/min | Most cost-effective cloud option |
-| **OpenAI Realtime** | ~$0.06/min | 10x more expensive than Whisper (not implemented) |
-
-> **Why no OpenAI Realtime?** We initially implemented OpenAI's Realtime API for true streaming transcription, but removed it due to cost concerns (~$0.06/min vs Whisper's ~$0.006/min) and inconsistent transcription quality. The Whisper batch API with 2-second re-transcription intervals provides better value and more reliable results for most use cases.
+| Provider | Windows | macOS | Linux |
+|----------|---------|-------|-------|
+| Windows SAPI | Yes | No | No |
+| Azure TTS | Yes | Yes | Yes |
+| OpenAI TTS | Yes | Yes | Yes |
+| Piper (Local) | Yes | Yes | Yes |
+| macOS Native | No | Yes | No |
 
 ## Usage
 
+### Speech-to-Text
 1. **Start the application** - The overlay window appears and the app minimizes to the system tray
 2. **Press Ctrl+Ctrl** (double-tap Ctrl) - Start listening for speech
-3. **Speak** - Your words appear in real-time in the overlay (with elapsed time shown)
+3. **Speak** - Your words appear in real-time in the overlay
 4. **Press Ctrl+Ctrl again** - Stop listening and copy text to clipboard
-5. **Done!** - Text is copied to clipboard, or automatically inserted at cursor if enabled
+
+### Text-to-Speech
+1. **Copy text** to your clipboard
+2. **Press Shift+Shift** (double-tap Shift) - Start reading the clipboard text aloud
+3. **Press Shift+Shift again** - Stop reading
 
 > **Tip:** Enable "Insert transcription at cursor" in Settings to have text automatically pasted into your active application when you stop recording.
 
@@ -116,12 +122,7 @@ Actions:
 
 ## Settings
 
-Settings are organized into three tabs: **General**, **Advanced**, and **About**.
-
-### Speech Provider (General Tab)
-- **Offline (Windows only)**: Uses Windows built-in speech recognition - no internet required
-- **Azure Speech Service**: Cloud-based recognition with real-time streaming
-- **OpenAI Whisper (Batch)**: Re-transcribes entire audio every 2 seconds for pseudo-streaming
+Settings are organized into tabs: **General**, **STT**, **TTS**, and **Advanced**.
 
 ### Cloud Service Setup
 
@@ -131,13 +132,11 @@ Settings are organized into three tabs: **General**, **Advanced**, and **About**
 3. Open Settings and select "Azure" as the speech provider
 4. Enter your subscription key and region
 
-#### OpenAI Whisper
+#### OpenAI Whisper/TTS
 
 1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Open Settings and enter your OpenAI API key
-3. Select **OpenAI Whisper** as the speech provider
-
-Whisper provides excellent transcription quality at a low cost (~$0.006/min). It re-transcribes the entire audio every 2 seconds for pseudo-streaming updates.
+3. Select **OpenAI Whisper** as the STT provider or **OpenAI TTS** as the TTS provider
 
 ## Building from Source
 
@@ -150,30 +149,30 @@ Whisper provides excellent transcription quality at a low cost (~$0.006/min). It
 
 ```bash
 # Clone the repository
-git clone https://github.com/LorenzoNey/wispr-clone.git
-cd wispr-clone
+git clone https://github.com/LorenzoNey/aitextvoice.git
+cd aitextvoice
 
 # Build the project
 dotnet build
 
 # Run the application
-dotnet run --project src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
+dotnet run --project src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj
 ```
 
 ### Publish for Release
 
 ```bash
 # Windows x64
-dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 
 # macOS Apple Silicon
-dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
+dotnet publish src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
 
 # macOS Intel
-dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r osx-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release -r osx-x64 --self-contained -p:PublishSingleFile=true
 
 # Linux x64
-dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
 ```
 
 ## Creating a Release
@@ -188,91 +187,35 @@ git checkout main
 git pull
 
 # Create and push a version tag
-git tag v2.0.0
-git push origin v2.0.0
+git tag v2.4.0
+git push origin v2.4.0
 ```
 
 The GitHub Actions workflow will automatically:
 1. Build the application for all platforms (Windows, macOS, Linux - both x64 and ARM64)
-2. Create platform-specific archives
+2. Create platform-specific installers
 3. Create a GitHub Release with all artifacts attached
 4. Generate release notes from commit history
-
-### Version Tag Format
-
-- **Release**: `v1.0.0`, `v2.1.0`
-- **Pre-release**: `v1.0.0-beta.1`, `v2.0.0-alpha.1`, `v1.0.0-rc.1`
-
-Pre-release tags will create pre-release GitHub releases.
-
-### Setting Up Apple Code Signing Secrets
-
-macOS releases require Apple code signing. The repository includes `apple-secrets.txt` as a template showing the required secrets.
-
-#### Required Secrets
-
-| Secret Name | Description |
-|-------------|-------------|
-| `APPLE_CERTIFICATE_BASE64` | Base64-encoded .p12 certificate file |
-| `APPLE_CERTIFICATE_PASSWORD` | Password for the .p12 certificate |
-| `APPLE_TEAM_ID` | Your Apple Developer Team ID |
-| `APPLE_ID` | Apple ID email for notarization |
-| `APPLE_ID_PASSWORD` | App-specific password for notarization |
-
-#### For Individual Repositories
-
-1. Go to your repository on GitHub
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add each secret from the table above with its corresponding value
-5. Repeat for all five secrets
-
-#### For Organization-Wide Access
-
-If you have multiple repositories that need the same Apple signing credentials:
-
-1. Go to your GitHub organization page
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New organization secret**
-4. Add each secret from the table above
-5. Under "Repository access", choose:
-   - **All repositories** - for all repos in the org
-   - **Private repositories** - for private repos only
-   - **Selected repositories** - to pick specific repos
-6. Click **Add secret**
-
-#### Generating the Base64 Certificate
-
-To convert your .p12 certificate to base64:
-
-```bash
-# macOS/Linux
-base64 -i certificate.p12 | tr -d '\n' > certificate-base64.txt
-
-# Windows (PowerShell)
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificate.p12")) | Out-File certificate-base64.txt -NoNewline
-```
-
-Copy the contents of `certificate-base64.txt` as the value for `APPLE_CERTIFICATE_BASE64`.
 
 ## Project Structure
 
 ```
-wispr-clone/
+aitextvoice/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # CI build on push/PR
 │       └── release.yml         # Release workflow on tag push
 ├── README.md                   # This file
-├── installer/                  # Windows installer (Inno Setup)
+├── installer/                  # Platform-specific installers
 ├── src/
-│   └── WisprClone.Avalonia/    # Cross-platform Avalonia version
+│   └── AITextVoice.Avalonia/   # Cross-platform Avalonia version
 │       ├── Core/               # Core types (states, events, constants)
 │       ├── Infrastructure/     # Keyboard hooks (SharpHook)
 │       ├── Models/             # Data models (settings)
 │       ├── Services/           # Business logic services
 │       │   ├── Interfaces/     # Service interfaces
-│       │   └── Speech/         # Speech recognition implementations
+│       │   ├── Speech/         # STT implementations
+│       │   └── Tts/            # TTS implementations
 │       ├── ViewModels/         # MVVM view models
 │       ├── Views/              # Avalonia windows
 │       └── Resources/          # Icons, styles
@@ -301,13 +244,7 @@ If the global hotkey doesn't work:
 1. Open System Preferences > Security & Privacy > Privacy
 2. Select "Accessibility" from the sidebar
 3. Click the lock to make changes
-4. Add WisprClone to the list and enable it
-
-### Linux Global Keyboard
-
-Global keyboard hooks require X11. If using Wayland:
-- Try running with `XDG_SESSION_TYPE=x11`
-- Or use XWayland compatibility mode
+4. Add AITextVoice to the list and enable it
 
 ### Debug Logging
 
@@ -319,19 +256,8 @@ If you're experiencing issues, enable debug logging in Settings to help diagnose
 4. Click **Save**
 5. Reproduce the issue
 6. Find log files at:
-   - **Windows**: `%AppData%\WisprClone\logs\wispr_YYYY-MM-DD.log`
-   - **macOS/Linux**: `~/.config/WisprClone/logs/wispr_YYYY-MM-DD.log`
-
-Logging takes effect immediately - no restart required.
-
-## Version History
-
-- **2.4.x** - Insert at cursor, elapsed time display, tabbed settings, centralized logging
-- **2.3.x** - Auto-scroll overlay, update notifications with red dot indicator, UX improvements
-- **2.0.0** - Cross-platform support (Windows, macOS, Linux) using Avalonia UI
-- **1.2.0** - Added About dialog, version display in settings
-- **1.1.0** - Added installer with version checking, icon pack, logging options
-- **1.0.0** - Initial release with core functionality
+   - **Windows**: `%AppData%\AITextVoice\logs\aitextvoice_YYYY-MM-DD.log`
+   - **macOS/Linux**: `~/.config/AITextVoice/logs/aitextvoice_YYYY-MM-DD.log`
 
 ## Tech Stack
 
@@ -341,13 +267,15 @@ Logging takes effect immediately - no restart required.
   - [System.Speech](https://www.nuget.org/packages/System.Speech) (Windows offline)
   - [Azure Cognitive Services Speech SDK](https://www.nuget.org/packages/Microsoft.CognitiveServices.Speech)
   - [OpenAI API](https://platform.openai.com/)
+  - [Faster-Whisper](https://github.com/SYSTRAN/faster-whisper) (local)
+- **Text-to-Speech**:
+  - Windows SAPI
+  - Azure Cognitive Services
+  - OpenAI TTS
+  - [Piper](https://github.com/rhasspy/piper) (local)
 - **Audio**: [NAudio](https://github.com/naudio/NAudio) (Windows)
 - **MVVM**: [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet)
 
 ## License
 
 This project is provided as-is for educational purposes.
-
-## Acknowledgments
-
-- Inspired by [Wispr Flow](https://wisprflow.com/)

@@ -13,14 +13,14 @@ C:\Users\LaurentiuNae\.dotnet\dotnet.exe
 ## Building the Project
 
 ```bash
-cd "D:\BA Work\wispr-clone\src\WisprClone.Avalonia"
+cd "D:\BA Work\wispr-clone\src\AITextVoice.Avalonia"
 "C:\Users\LaurentiuNae\.dotnet\dotnet.exe" build --configuration Debug
 ```
 
 ## Running the Project
 
 ```bash
-cd "D:\BA Work\wispr-clone\src\WisprClone.Avalonia"
+cd "D:\BA Work\wispr-clone\src\AITextVoice.Avalonia"
 "C:\Users\LaurentiuNae\.dotnet\dotnet.exe" run --configuration Debug
 ```
 

@@ -27,7 +27,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
+        run: dotnet restore src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj
 
       - name: Build
-        run: dotnet build src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release --no-restore
+        run: dotnet build src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release --no-restore

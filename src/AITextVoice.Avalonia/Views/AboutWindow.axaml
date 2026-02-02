@@ -1,0 +1,98 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AITextVoice.Views.AboutWindow"
+        Title="About AITextVoice"
+        Width="400" Height="380"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#FF1E1E1E">
+
+    <Grid Margin="32">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <!-- App Icon -->
+            <Image Source="avares://AITextVoice/Resources/Icons/app_icon_64.png"
+                   Width="64" Height="64"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,16"/>
+
+            <!-- App Name -->
+            <TextBlock Text="AITextVoice"
+                       Foreground="White"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Version -->
+            <TextBlock x:Name="VersionText"
+                       Text="Version 2.0.0"
+                       Foreground="#FF808080"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Margin="0,4,0,16"/>
+
+            <!-- Description -->
+            <TextBlock Text="AI-powered speech-to-text and text-to-speech"
+                       Foreground="#FFB0B0B0"
+                       FontSize="12"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,0,0,8"/>
+
+            <TextBlock Text="Powered by Azure Speech and OpenAI Whisper"
+                       Foreground="#FF808080"
+                       FontSize="11"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,0,0,16"/>
+
+            <!-- Update Section -->
+            <Border Background="#FF2D2D2D"
+                    CornerRadius="6"
+                    Padding="16,12"
+                    Margin="0,0,0,16"
+                    HorizontalAlignment="Stretch">
+                <StackPanel>
+                    <TextBlock x:Name="UpdateStatusText"
+                               Text="Checking for updates..."
+                               Foreground="#FFB0B0B0"
+                               FontSize="12"
+                               HorizontalAlignment="Center"/>
+
+                    <ProgressBar x:Name="UpdateProgressBar"
+                                 IsVisible="False"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Height="4"
+                                 Margin="0,8,0,0"/>
+
+                    <Button x:Name="UpdateButton"
+                            Content="Download Update"
+                            IsVisible="False"
+                            HorizontalAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            Background="#FF28A745"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Padding="12,6"
+                            CornerRadius="4"
+                            Margin="0,8,0,0"
+                            Click="UpdateButton_Click"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Close Button -->
+            <Button Content="OK"
+                    HorizontalAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    Width="100"
+                    Background="#FF3391FF"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="16,8"
+                    CornerRadius="4"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -7,7 +7,7 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'src/WisprClone.Avalonia/WisprClone.Avalonia.csproj'
+  PROJECT_PATH: 'src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj'
 
 jobs:
   build-windows-installer:
@@ -51,7 +51,7 @@ jobs:
       - name: Update installer version
         shell: pwsh
         run: |
-          $issPath = "installer/windows/WisprClone.iss"
+          $issPath = "installer/windows/AITextVoice.iss"
           $content = Get-Content $issPath -Raw
           $content = $content -replace '#define MyAppVersion ".*"', '#define MyAppVersion "${{ steps.version.outputs.VERSION }}"'
           Set-Content $issPath $content
@@ -59,13 +59,13 @@ jobs:
       - name: Build installer
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/windows/WisprClone.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/windows/AITextVoice.iss
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WisprClone-Windows-Installer
-          path: installer/windows/output/WisprClone-Setup-*.exe
+          name: AITextVoice-Windows-Installer
+          path: installer/windows/output/AITextVoice-Setup-*.exe
           retention-days: 1
 
   build-macos-dmg:
@@ -143,7 +143,7 @@ jobs:
             -p:DebugType=none \
             -p:DebugSymbols=false \
             -p:Version=${{ steps.version.outputs.VERSION }} \
-            -o ./publish/WisprClone.app/Contents/MacOS
+            -o ./publish/AITextVoice.app/Contents/MacOS
 
           # Remove any pdb files that might have been created
           find ./publish -name "*.pdb" -delete
@@ -152,23 +152,23 @@ jobs:
         run: |
           # Compile the Swift helper for arm64
           swiftc -O -target arm64-apple-macos10.15 \
-            -o ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper \
+            -o ./publish/AITextVoice.app/Contents/MacOS/MacOSSpeechHelper \
             src/MacOSSpeechHelper/main.swift
 
           # Make it executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/MacOSSpeechHelper
 
       - name: Build Swift Audio Helper
         run: |
           # Compile the audio capture helper for arm64
           swiftc -O -target arm64-apple-macos11.0 \
-            -o ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper \
+            -o ./publish/AITextVoice.app/Contents/MacOS/MacOSAudioHelper \
             -framework AVFoundation \
             -framework Foundation \
             src/MacOSAudioHelper/main.swift
 
           # Make it executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/MacOSAudioHelper
 
       - name: Create app icon (icns)
         run: |
@@ -176,45 +176,45 @@ jobs:
           mkdir -p AppIcon.iconset
 
           # Use the 256px icon as source and create required sizes
-          sips -z 16 16     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
-          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
-          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
-          sips -z 64 64     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
-          sips -z 128 128   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
-          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
-          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
+          sips -z 16 16     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
+          sips -z 32 32     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
+          sips -z 32 32     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
+          sips -z 64 64     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
+          sips -z 128 128   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
+          sips -z 256 256   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
+          sips -z 256 256   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
 
           # Convert to icns
           iconutil -c icns AppIcon.iconset -o AppIcon.icns
 
       - name: Create app bundle structure
         run: |
-          mkdir -p ./publish/WisprClone.app/Contents/Resources
+          mkdir -p ./publish/AITextVoice.app/Contents/Resources
 
           # Copy app icon
-          cp AppIcon.icns ./publish/WisprClone.app/Contents/Resources/AppIcon.icns
+          cp AppIcon.icns ./publish/AITextVoice.app/Contents/Resources/AppIcon.icns
 
           # Create Info.plist
-          cat > ./publish/WisprClone.app/Contents/Info.plist << EOF
+          cat > ./publish/AITextVoice.app/Contents/Info.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>CFBundleName</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundleDisplayName</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundleIdentifier</key>
-              <string>com.lorenzoneywisprclone</string>
+              <string>com.aitextvoice.app</string>
               <key>CFBundleVersion</key>
               <string>${{ steps.version.outputs.VERSION }}</string>
               <key>CFBundleShortVersionString</key>
               <string>${{ steps.version.outputs.VERSION }}</string>
               <key>CFBundleExecutable</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
               <key>CFBundleIconFile</key>
@@ -224,15 +224,15 @@ jobs:
               <key>NSHighResolutionCapable</key>
               <true/>
               <key>NSMicrophoneUsageDescription</key>
-              <string>WisprClone needs microphone access for speech recognition.</string>
+              <string>AITextVoice needs microphone access for speech recognition.</string>
               <key>NSSpeechRecognitionUsageDescription</key>
-              <string>WisprClone needs speech recognition access for native macOS transcription.</string>
+              <string>AITextVoice needs speech recognition access for native macOS transcription.</string>
           </dict>
           </plist>
           EOF
 
           # Make executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/AITextVoice
 
       - name: Code Sign Application
         env:
@@ -244,10 +244,10 @@ jobs:
 
           # Sign the app bundle with --deep to sign all nested Mach-O binaries
           # The --deep flag will sign dylibs and the main executable automatically
-          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/AITextVoice.app
 
           # Verify signature (without --strict as .NET DLLs aren't Mach-O binaries)
-          codesign --verify --deep --verbose=2 ./publish/WisprClone.app
+          codesign --verify --deep --verbose=2 ./publish/AITextVoice.app
           echo "Code signing completed successfully"
 
       - name: Create DMG
@@ -258,21 +258,21 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
           create-dmg \
-            --volname "WisprClone" \
+            --volname "AITextVoice" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
-            --icon "WisprClone.app" 150 190 \
-            --hide-extension "WisprClone.app" \
+            --icon "AITextVoice.app" 150 190 \
+            --hide-extension "AITextVoice.app" \
             --app-drop-link 450 190 \
             --codesign "$SIGNING_IDENTITY" \
-            "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
-            "./publish/WisprClone.app" || true
+            "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
+            "./publish/AITextVoice.app" || true
 
           # Fallback if create-dmg fails
-          if [ ! -f "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
-            hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
-            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
+          if [ ! -f "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
+            hdiutil create -volname "AITextVoice" -srcfolder ./publish/AITextVoice.app -ov -format UDZO "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
+            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
 
       - name: Notarize DMG
@@ -282,20 +282,20 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           # Submit for notarization
-          xcrun notarytool submit "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
+          xcrun notarytool submit "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
 
           # Staple the notarization ticket
-          xcrun stapler staple "WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
+          xcrun stapler staple "AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WisprClone-macOS-arm64-DMG
-          path: WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg
+          name: AITextVoice-macOS-arm64-DMG
+          path: AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg
           retention-days: 1
 
   build-macos-intel-dmg:
@@ -373,7 +373,7 @@ jobs:
             -p:DebugType=none \
             -p:DebugSymbols=false \
             -p:Version=${{ steps.version.outputs.VERSION }} \
-            -o ./publish/WisprClone.app/Contents/MacOS
+            -o ./publish/AITextVoice.app/Contents/MacOS
 
           # Remove any pdb files that might have been created
           find ./publish -name "*.pdb" -delete
@@ -382,23 +382,23 @@ jobs:
         run: |
           # Compile the Swift helper for x64
           swiftc -O -target x86_64-apple-macos10.15 \
-            -o ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper \
+            -o ./publish/AITextVoice.app/Contents/MacOS/MacOSSpeechHelper \
             src/MacOSSpeechHelper/main.swift
 
           # Make it executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSSpeechHelper
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/MacOSSpeechHelper
 
       - name: Build Swift Audio Helper
         run: |
           # Compile the audio capture helper for x64
           swiftc -O -target x86_64-apple-macos11.0 \
-            -o ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper \
+            -o ./publish/AITextVoice.app/Contents/MacOS/MacOSAudioHelper \
             -framework AVFoundation \
             -framework Foundation \
             src/MacOSAudioHelper/main.swift
 
           # Make it executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/MacOSAudioHelper
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/MacOSAudioHelper
 
       - name: Create app icon (icns)
         run: |
@@ -406,45 +406,45 @@ jobs:
           mkdir -p AppIcon.iconset
 
           # Use the 256px icon as source and create required sizes
-          sips -z 16 16     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
-          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
-          sips -z 32 32     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
-          sips -z 64 64     src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
-          sips -z 128 128   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
-          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
-          sips -z 256 256   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
-          sips -z 512 512   src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
+          sips -z 16 16     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16.png
+          sips -z 32 32     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_16x16@2x.png
+          sips -z 32 32     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32.png
+          sips -z 64 64     src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_32x32@2x.png
+          sips -z 128 128   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128.png
+          sips -z 256 256   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_128x128@2x.png
+          sips -z 256 256   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_256x256@2x.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512.png
+          sips -z 512 512   src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png --out AppIcon.iconset/icon_512x512@2x.png
 
           # Convert to icns
           iconutil -c icns AppIcon.iconset -o AppIcon.icns
 
       - name: Create app bundle structure
         run: |
-          mkdir -p ./publish/WisprClone.app/Contents/Resources
+          mkdir -p ./publish/AITextVoice.app/Contents/Resources
 
           # Copy app icon
-          cp AppIcon.icns ./publish/WisprClone.app/Contents/Resources/AppIcon.icns
+          cp AppIcon.icns ./publish/AITextVoice.app/Contents/Resources/AppIcon.icns
 
           # Create Info.plist
-          cat > ./publish/WisprClone.app/Contents/Info.plist << EOF
+          cat > ./publish/AITextVoice.app/Contents/Info.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>CFBundleName</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundleDisplayName</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundleIdentifier</key>
-              <string>com.lorenzoneywisprclone</string>
+              <string>com.aitextvoice.app</string>
               <key>CFBundleVersion</key>
               <string>${{ steps.version.outputs.VERSION }}</string>
               <key>CFBundleShortVersionString</key>
               <string>${{ steps.version.outputs.VERSION }}</string>
               <key>CFBundleExecutable</key>
-              <string>WisprClone</string>
+              <string>AITextVoice</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
               <key>CFBundleIconFile</key>
@@ -454,15 +454,15 @@ jobs:
               <key>NSHighResolutionCapable</key>
               <true/>
               <key>NSMicrophoneUsageDescription</key>
-              <string>WisprClone needs microphone access for speech recognition.</string>
+              <string>AITextVoice needs microphone access for speech recognition.</string>
               <key>NSSpeechRecognitionUsageDescription</key>
-              <string>WisprClone needs speech recognition access for native macOS transcription.</string>
+              <string>AITextVoice needs speech recognition access for native macOS transcription.</string>
           </dict>
           </plist>
           EOF
 
           # Make executable
-          chmod +x ./publish/WisprClone.app/Contents/MacOS/WisprClone
+          chmod +x ./publish/AITextVoice.app/Contents/MacOS/AITextVoice
 
       - name: Code Sign Application
         env:
@@ -474,10 +474,10 @@ jobs:
 
           # Sign the app bundle with --deep to sign all nested Mach-O binaries
           # The --deep flag will sign dylibs and the main executable automatically
-          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/WisprClone.app
+          codesign --force --deep --options runtime --entitlements entitlements.plist --sign "$SIGNING_IDENTITY" --timestamp ./publish/AITextVoice.app
 
           # Verify signature (without --strict as .NET DLLs aren't Mach-O binaries)
-          codesign --verify --deep --verbose=2 ./publish/WisprClone.app
+          codesign --verify --deep --verbose=2 ./publish/AITextVoice.app
           echo "Code signing completed successfully"
 
       - name: Create DMG
@@ -488,21 +488,21 @@ jobs:
           SIGNING_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
 
           create-dmg \
-            --volname "WisprClone" \
+            --volname "AITextVoice" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
-            --icon "WisprClone.app" 150 190 \
-            --hide-extension "WisprClone.app" \
+            --icon "AITextVoice.app" 150 190 \
+            --hide-extension "AITextVoice.app" \
             --app-drop-link 450 190 \
             --codesign "$SIGNING_IDENTITY" \
-            "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
-            "./publish/WisprClone.app" || true
+            "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
+            "./publish/AITextVoice.app" || true
 
           # Fallback if create-dmg fails
-          if [ ! -f "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
-            hdiutil create -volname "WisprClone" -srcfolder ./publish/WisprClone.app -ov -format UDZO "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
-            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
+          if [ ! -f "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" ]; then
+            hdiutil create -volname "AITextVoice" -srcfolder ./publish/AITextVoice.app -ov -format UDZO "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
+            codesign --force --sign "$SIGNING_IDENTITY" --timestamp "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
           fi
 
       - name: Notarize DMG
@@ -512,20 +512,20 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           # Submit for notarization
-          xcrun notarytool submit "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
+          xcrun notarytool submit "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
 
           # Staple the notarization ticket
-          xcrun stapler staple "WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
+          xcrun stapler staple "AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WisprClone-macOS-x64-DMG
-          path: WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg
+          name: AITextVoice-macOS-x64-DMG
+          path: AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg
           retention-days: 1
 
   build-linux-appimage:
@@ -576,13 +576,13 @@ jobs:
           mkdir -p ./AppDir/usr/share/icons/hicolor/256x256/apps
 
           # Copy desktop file
-          cp installer/linux/WisprClone.desktop ./AppDir/usr/share/applications/
-          cp installer/linux/WisprClone.desktop ./AppDir/
+          cp installer/linux/AITextVoice.desktop ./AppDir/usr/share/applications/
+          cp installer/linux/AITextVoice.desktop ./AppDir/
 
           # Copy icon (convert ico to png if needed, or use existing png)
-          if [ -f "src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png" ]; then
-            cp src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png ./AppDir/usr/share/icons/hicolor/256x256/apps/wisprclone.png
-            cp src/WisprClone.Avalonia/Resources/Icons/app_icon_256.png ./AppDir/wisprclone.png
+          if [ -f "src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png" ]; then
+            cp src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png ./AppDir/usr/share/icons/hicolor/256x256/apps/aitextvoice.png
+            cp src/AITextVoice.Avalonia/Resources/Icons/app_icon_256.png ./AppDir/aitextvoice.png
           fi
 
           # Create AppRun script
@@ -592,19 +592,19 @@ jobs:
           HERE=${SELF%/*}
           export PATH="${HERE}/usr/bin:${PATH}"
           export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-          exec "${HERE}/usr/bin/WisprClone" "$@"
+          exec "${HERE}/usr/bin/AITextVoice" "$@"
           EOF
           chmod +x ./AppDir/AppRun
 
       - name: Build AppImage
         run: |
-          ARCH=x86_64 ./appimagetool ./AppDir WisprClone-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage
+          ARCH=x86_64 ./appimagetool ./AppDir AITextVoice-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WisprClone-Linux-AppImage
-          path: WisprClone-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage
+          name: AITextVoice-Linux-AppImage
+          path: AITextVoice-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage
           retention-days: 1
 
   release:
@@ -632,7 +632,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: WisprClone v${{ steps.version.outputs.VERSION }}
+          name: AITextVoice v${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-alpha') || contains(github.ref, '-rc') }}
           generate_release_notes: true
@@ -641,33 +641,33 @@ jobs:
             ./artifacts/**/*.dmg
             ./artifacts/**/*.AppImage
           body: |
-            ## WisprClone v${{ steps.version.outputs.VERSION }}
+            ## AITextVoice v${{ steps.version.outputs.VERSION }}
 
-            Cross-platform speech-to-text application powered by Azure Speech Services and OpenAI Whisper.
+            AI-powered speech-to-text and text-to-speech application powered by Azure Speech Services and OpenAI Whisper.
 
             ### Downloads
 
             | Platform | Architecture | Download |
             |----------|--------------|----------|
-            | **Windows** | x64 | `WisprClone-Setup-${{ steps.version.outputs.VERSION }}.exe` |
-            | **macOS** | Apple Silicon (M1/M2/M3) | `WisprClone-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg` |
-            | **macOS** | Intel | `WisprClone-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg` |
-            | **Linux** | x64 | `WisprClone-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage` |
+            | **Windows** | x64 | `AITextVoice-Setup-${{ steps.version.outputs.VERSION }}.exe` |
+            | **macOS** | Apple Silicon (M1/M2/M3) | `AITextVoice-macOS-arm64-${{ steps.version.outputs.VERSION }}.dmg` |
+            | **macOS** | Intel | `AITextVoice-macOS-x64-${{ steps.version.outputs.VERSION }}.dmg` |
+            | **Linux** | x64 | `AITextVoice-Linux-x64-${{ steps.version.outputs.VERSION }}.AppImage` |
 
             ### Installation
 
             #### Windows
-            Download and run `WisprClone-Setup-${{ steps.version.outputs.VERSION }}.exe` for a full installation with Start Menu shortcuts and uninstaller.
+            Download and run `AITextVoice-Setup-${{ steps.version.outputs.VERSION }}.exe` for a full installation with Start Menu shortcuts and uninstaller.
 
             #### macOS
             1. Download the `.dmg` file for your Mac (Apple Silicon or Intel)
-            2. Open the DMG and drag WisprClone to Applications
+            2. Open the DMG and drag AITextVoice to Applications
             3. On first launch, grant Accessibility and Microphone permissions
 
             #### Linux
             1. Download the `.AppImage` file
-            2. Make it executable: `chmod +x WisprClone-*.AppImage`
-            3. Run it: `./WisprClone-*.AppImage`
+            2. Make it executable: `chmod +x AITextVoice-*.AppImage`
+            3. Run it: `./AITextVoice-*.AppImage`
 
             ### Notes
 

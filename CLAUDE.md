@@ -16,17 +16,17 @@ dotnet build
 # "C:/Users/LaurentiuNae/.dotnet/dotnet.exe" build
 
 # Run
-dotnet run --project src/WisprClone.Avalonia/WisprClone.Avalonia.csproj
+dotnet run --project src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj
 
 # Publish for release (Windows x64)
-dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish src/AITextVoice.Avalonia/AITextVoice.Avalonia.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 
 # Other targets: win-arm64, osx-arm64, osx-x64, linux-x64
 ```
 
 ## Architecture Overview
 
-**WisprClone** is a cross-platform speech-to-text desktop app built with:
+**AITextVoice** is a cross-platform speech-to-text and text-to-speech desktop app built with:
 - **Avalonia UI** (.NET 8.0) for cross-platform desktop UI
 - **CommunityToolkit.Mvvm** for MVVM pattern with `[ObservableProperty]` attributes
 - **SharpHook** for global keyboard hooks (Ctrl+Ctrl double-tap activation)
@@ -48,7 +48,7 @@ dotnet publish src/WisprClone.Avalonia/WisprClone.Avalonia.csproj -c Release -r 
 ### Source Layout
 
 ```
-src/WisprClone.Avalonia/
+src/AITextVoice.Avalonia/
 ├── Core/           # Enums (TranscriptionState, SpeechProvider), Constants
 ├── Infrastructure/ # Global keyboard hook (SharpHookKeyboardHook, DoubleKeyTapDetector)
 ├── Models/         # AppSettings, data models
@@ -67,14 +67,14 @@ src/WisprClone.Avalonia/
 
 - **Windows-only features**: Offline recognition (System.Speech), OpenAI Realtime (NAudio for audio capture)
 - **Conditional compilation**: `WINDOWS` constant defined in .csproj for platform-specific code
-- **Settings location**: `%AppData%/WisprClone/settings.json`
+- **Settings location**: `%AppData%/AITextVoice/settings.json`
 
 ## Releasing
 
 Push a version tag to trigger automated GitHub Actions release:
 ```bash
-git tag v2.3.0
-git push origin v2.3.0
+git tag v2.4.0
+git push origin v2.4.0
 ```
 
 Creates installers for Windows (Inno Setup), macOS (DMG), and Linux (AppImage).
